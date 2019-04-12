@@ -14,9 +14,9 @@
 #include <string.h>
 #include <stdbool.h>
 
-int main() {
+int main(int argc, char *argv[]) {
 	char *port = "65200";
-	char *host = "127.0.0.1"
+	char *host = "127.0.1.1;
 	struct addrinfo *address;
 	
 	const struct addrinfo hints = {
@@ -45,7 +45,7 @@ int main() {
 	struct sockaddr clientaddr;
 	socklen_t addrlen = sizeof(clientaddr);
 	
-	strcpy(outgoing, "condition:?");
+	strcpy(outgoing, argv[1]);
 	sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 	
 	msgsize = recvfrom(fd, incoming, buffsize, 0, 0, 0);
