@@ -16,7 +16,7 @@
 
 int main() {
 	char *port = "65200";
-	char *host = "localhost";
+	char *host = "127.0.0.1"
 	struct addrinfo *address;
 	
 	const struct addrinfo hints = {
