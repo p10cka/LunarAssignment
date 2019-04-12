@@ -55,6 +55,6 @@ int serverConnection (int argc, char *argv[]) {
 	printf("reply: %s \n", incoming);
 }
 
-int main() {
-	serverConnection();
+int main(int argc, char *argv[]) {
+	serverConnection(argc, *argv[]);
 }
