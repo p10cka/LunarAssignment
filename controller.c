@@ -15,6 +15,10 @@
 #include <stdbool.h>
 
 int main(int argc, char *argv[]) {
+	serverConnection();
+}
+
+int serverConnection () {
 	char *port = "65200";
 	char *host = "127.0.1.1";
 	struct addrinfo *address;
