@@ -14,10 +14,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-int main() {
-	serverConnection();
-}
-
 int serverConnection (int argc, char *argv[]) {
 	char *port = "65200";
 	char *host = "127.0.1.1";
@@ -57,4 +53,8 @@ int serverConnection (int argc, char *argv[]) {
 	incoming[msgsize] = '\0';
 	
 	printf("reply: %s \n", incoming);
+}
+
+int main() {
+	serverConnection();
 }
