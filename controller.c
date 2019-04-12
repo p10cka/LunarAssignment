@@ -19,15 +19,25 @@ int main() {
 	char *host = "localhost";
 	struct addrinfo *address;
 	
-	int fd, addr;
+	const struct addrinfo hints = {
+        .ai_family = AF_INET,
+        .ai_socktype = SOCK_DGRAM,
+    };
 	
-	addr = getaddr(host, port, &address);
-	if (!addr)
-		exit(1);
+	int fd, err;
 	
-	fd = makeSocket();
-	if(fd == 0)
-			exit(1);
+    err = getaddrinfo(host, port, &hints, &address);
+    if (err) {
+        fprintf(stderr, "Error getting address: %s\n", gai_strerror(err));
+        exit(1);
+    }
+
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd == -1) {
+        fprintf(stderr, "error making socket: %s\n", strerror(errno));
+        exit(1);
+    }
+
 		
 	const size_t buffsize = 4096;
 	char incoming[buffsize], outgoing[buffsize];
