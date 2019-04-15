@@ -43,7 +43,6 @@ void *serverConn() {
 	int fd, err;
 	
 	sem_wait(&sem);
-	printf("\nEntered..\n"); 
     err = getaddrinfo(host, port, &hints, &address);
     if (err) {
         fprintf(stderr, "Error getting address: %s\n", gai_strerror(err));
@@ -71,6 +70,5 @@ void *serverConn() {
 	incoming[msgsize] = '\0';
 	
 	printf("reply: %s \n", incoming);
-	printf("\nJust Exiting...\n"); 
     sem_post(&sem); 
 }
