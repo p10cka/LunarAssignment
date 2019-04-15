@@ -14,11 +14,16 @@
 #include <string.h>
 #include <stdbool.h>
 
-int main(int argc, char *argv[]) {
-	serverConn(argc, argv[]);
+int g_argc;
+char **g_argv;
+
+int main(int argc, char **argv) {
+	g_argc = argc;
+	g_argv = argv;
+	serverConn();
 }
 
-void serverConn(int argc, char *argv[]) {
+void serverConn() {
 char *port = "65200";
 	char *host = "127.0.1.1";
 	struct addrinfo *address;
@@ -49,7 +54,7 @@ char *port = "65200";
 	struct sockaddr clientaddr;
 	socklen_t addrlen = sizeof(clientaddr);
 	
-	strcpy(outgoing, argv[1]);
+	strcpy(outgoing, g_argv[1]);
 	sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 	
 	msgsize = recvfrom(fd, incoming, buffsize, 0, 0, 0);
