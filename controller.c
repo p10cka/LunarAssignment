@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <string.h>
 #include <stdbool.h>
+#include <pthread.h> 
 
 int g_argc;
 char **g_argv;
@@ -20,11 +21,15 @@ char **g_argv;
 int main(int argc, char **argv) {
 	g_argc = argc;
 	g_argv = argv;
-	serverConn();
+	pthread_t thread_id;
+	printf("Before Thread\n"); 
+	pthread_create(&thread_id, NULL, serverConn, NULL);
+	pthread_join(thread_id, NULL);
+	printf("After Thread\n"); 
 }
 
-void serverConn() {
-char *port = "65200";
+void *serverConn() {
+	char *port = "65200";
 	char *host = "127.0.1.1";
 	struct addrinfo *address;
 	
