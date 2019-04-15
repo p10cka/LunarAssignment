@@ -15,7 +15,7 @@
 #include <stdbool.h>
 
 int main(int argc, char *argv[]) {
-	serverConn(argc, *argv[]);
+	serverConn(argc, argv[]);
 }
 
 void serverConn(int argc, char *argv[]) {
