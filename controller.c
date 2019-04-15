@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 	serverConn(argc, *argv[]);
 }
 
-int serverConn(int argc, char *argv[]) {
+void serverConn(int argc, char *argv[]) {
 char *port = "65200";
 	char *host = "127.0.1.1";
 	struct addrinfo *address;
