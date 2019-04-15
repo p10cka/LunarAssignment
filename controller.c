@@ -15,6 +15,8 @@
 #include <stdbool.h>
 #include <pthread.h> 
 
+void *serverConn();
+
 int g_argc;
 char **g_argv;
 
