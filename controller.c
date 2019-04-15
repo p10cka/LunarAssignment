@@ -14,34 +14,36 @@
 #include <string.h>
 #include <stdbool.h>
 #include <pthread.h> 
+#include <semaphore.h>
 
 void *serverConn();
-
 int g_argc;
 char **g_argv;
+sem_t sem;
 
 int main(int argc, char **argv) {
 	g_argc = argc;
 	g_argv = argv;
+	sem_init(&sem,0,1);
 	pthread_t thread_id;
-	printf("Before Thread\n"); 
 	pthread_create(&thread_id, NULL, serverConn, NULL);
 	pthread_join(thread_id, NULL);
-	printf("After Thread\n"); 
+	sem_destroy(&sem);
+	return 0;
 }
 
 void *serverConn() {
 	char *port = "65200";
 	char *host = "127.0.1.1";
 	struct addrinfo *address;
-	
 	const struct addrinfo hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_DGRAM,
     };
-	
 	int fd, err;
 	
+	sem_wait(&sem);
+	printf("\nEntered..\n"); 
     err = getaddrinfo(host, port, &hints, &address);
     if (err) {
         fprintf(stderr, "Error getting address: %s\n", gai_strerror(err));
@@ -69,4 +71,6 @@ void *serverConn() {
 	incoming[msgsize] = '\0';
 	
 	printf("reply: %s \n", incoming);
+	printf("\nJust Exiting...\n"); 
+    sem_post(&sem); 
 }
