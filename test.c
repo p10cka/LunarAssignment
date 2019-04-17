@@ -50,8 +50,8 @@ int main(int argc, const char **argv) {
         exit(-1);
     }
  
-    //we only wait for the user input thread, once this stops, stop entire program
-    pthread_join(userInputThread, NULL);
+    //we only wait for the user input thread, one this stops, stop entire program
+    pthread_join(dashThread, NULL);
 }
  
 void* userInputThreadController(void *arg) {
