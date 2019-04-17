@@ -56,7 +56,7 @@ int main(int argc, const char **argv) {
  
 void* userInputThreadController(void *arg) {
     char *port = "65200";
-    char *host = "192.168.1.65";
+    char *host = "192.168.56.1";
     struct addrinfo *address;
  
     int fd;
@@ -70,9 +70,9 @@ void* userInputThreadController(void *arg) {
  
 void* dashThreadController(void *arg) {
     char *dashPort = "65250";
-    char *dashHost = "127.0.1.1";
+    char *dashHost = "192.168.56.1";
     char *landerPort = "65200";
-    char *landerHost = "127.0.1.1";
+    char *landerHost = "192.168.56.1";
     struct addrinfo *dashAddress, *landerAddress;
  
     int dashSocket, landerSocket;
