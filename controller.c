@@ -23,7 +23,7 @@ int makeSocket(void);
 //Global Variables
 char *serverPort = "65200";
 char *dashboardPort = "65250";
-char *host = "127.0.1.1";
+char *host = "192.168.56.1";
 int g_argc;
 char **g_argv;
 sem_t sem;
