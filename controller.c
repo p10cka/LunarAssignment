@@ -108,8 +108,8 @@ void getUserInput(int fd, struct addrinfo *address) {
  //while the esc key has not been pressed
     while((key=getch()) != 27) { 
         //moves cursor to middle of the terminal window 
-		move(7, 2); //10,0
-        printw("\nAltitude: %s \nFuel Left: %s", altitude, fuel);
+		move(5, 0); //10,0
+        printw("\nAltitude: %s Fuel Left: %s", altitude, fuel);
 
         switch(key) {
 			case KEY_UP:
