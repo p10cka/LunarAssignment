@@ -25,7 +25,6 @@ void getUserInput(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
 void* userInputThreadController(void *arg);
 void* dashboardController(void *arg);
-void* serverController(void *arg);
 
 //global variables
 char *host = "192.168.56.1"; 
@@ -42,9 +41,6 @@ char *altitude;
 int main(int argc, const char **argv) {
     pthread_t dashThread;
     int dt = pthread_create(&dashThread, NULL, dashboardController, NULL);
-
-	pthread_t serverThread;
-    int dt = pthread_create(&dashThread, NULL, serverController, NULL);
  
     pthread_t userInputThread;
     int uit  = pthread_create(&userInputThread, NULL, userInputThreadController, NULL);
@@ -77,51 +73,19 @@ void* userInputThreadController(void *arg) {
  
 void* dashboardController(void *arg) {
 
-    struct addrinfo *dashAddress;
+    struct addrinfo *dashAddress, *landerAddress;
  
-    int dashSocket;
+    int dashSocket, landerSocket;
  
     getaddr(host, dashPort, &dashAddress);
+    getaddr(host, landerPort, &landerAddress);
  
     dashSocket = createSocket();
- 
-    while (1) {
-        updateDashboard(dashSocket, dashAddress);
-    }
-}
-
-void* serverController(void *arg) {
-
-    struct addrinfo *landerAddress;
- 
-    int landerSocket;
-
-    getaddr(host, landerPort, &landerAddress);
-
     landerSocket = createSocket();
  
     while (1) {
-            char incoming[buffsize], outgoing[buffsize];
-    size_t msgsize;
- 
-    strcpy(outgoing, "condition:?");
-    sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
-    msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0);
-    incoming[msgsize] = '\0';
- 
-    //get each condition
-    char *condition = strtok(incoming, ":");
-    char *conditions[4]; //condition returns 4 values
-    int i = 0;
- 
-    while(condition != NULL) {
-        conditions[i++] = condition;
-        condition = strtok(NULL, ":");
-    }
- 
-    char *fuel_ = strtok(conditions[2], "%");
-    fuel = fuel_;
-    altitude = strtok(conditions[3], "contact");
+        getCondition(landerSocket, landerAddress);
+        updateDashboard(dashSocket, dashAddress);
     }
 }
  
