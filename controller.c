@@ -17,7 +17,7 @@
 #include <pthread.h>
 #include <semaphore.h>
  
-void getaddr(const char *node, const char *service, struct addrinfo **address);
+int getaddr(const char *node, const char *service, struct addrinfo **address);
 int createSocket(void);
 void sendCommand(int fd, struct addrinfo *address);
 void getCondition(int fd, struct addrinfo *address);
@@ -105,7 +105,7 @@ void getUserInput(int fd, struct addrinfo *address) {
  //while the esc key has not been pressed
     while((key=getch()) != 27) { 
         //moves cursor to middle of the terminal window 
-		move(10, 0); //10,0
+		move(12, 4); //10,0
         printf("\nAltitude: %s \nFuel Left: %s", altitude, fuel);
 
         switch(key) {
@@ -181,7 +181,7 @@ void getCondition(int fd, struct addrinfo *address) {
     altitude = strtok(conditions[3], "contact");
 }
  
-void getaddr(const char *node, const char *service, struct addrinfo **address) {
+int getaddr(const char *node, const char *service, struct addrinfo **address) {
     struct addrinfo hints = {
         .ai_flags = 0,
         .ai_family = AF_INET,
@@ -198,7 +198,10 @@ void getaddr(const char *node, const char *service, struct addrinfo **address) {
     if(err) {
         fprintf(stderr, "Error Getting Address: %s\n", gai_strerror(err));
         exit(1);
+        return false;
     }
+ 
+    return true;
 }
  
 int createSocket(void) {
