@@ -30,7 +30,6 @@ char *host = "192.168.56.1";
 char *dashPort = "65250";
 char *landerPort = "65200";
 const size_t buffsize = 4096;
-char incoming[buffsize], outgoing[buffsize];
 int enginePower = 0;
 int engineInc = 10;
 float rcsInc = 0.1;
@@ -132,16 +131,19 @@ void getUserInput(int fd, struct addrinfo *address) {
 }
  
 void sendCommand(int fd, struct addrinfo *address) {
+    char outgoing[buffsize];
     snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", enginePower, rcsRoll);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);	
 }
  
 void updateDashboard(int fd, struct addrinfo *address) {
+    char outgoing[buffsize];
     snprintf(outgoing, sizeof(outgoing), "fuel: %s \naltitude: %s", fuel, altitude);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
  
 void getCondition(int fd, struct addrinfo *address) {
+    char incoming[buffsize], outgoing[buffsize];
     size_t msgsize;
  
     strcpy(outgoing, "condition:?");
