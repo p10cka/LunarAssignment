@@ -39,42 +39,34 @@ char *fuel;
 char *altitude;
  
 int main(int argc, const char **argv) {
-    pthread_t dashThread;
-    int dt = pthread_create(&dashThread, NULL, dashboardController, NULL);
- 
+    pthread_t dashboardThread;
+    int dashThread = pthread_create(&dashThread, NULL, dashboardController, NULL);
+    if(dashThread != 0) {
+        fprintf(stderr, "Could not create thread.\n");
+        exit(-1);
+    }
+
     pthread_t userInputThread;
-    int uit  = pthread_create(&userInputThread, NULL, userInputThreadController, NULL);
- 
-    if(dt != 0) {
+    int inputThread  = pthread_create(&userInputThread, NULL, userInputThreadController, NULL);
+    if (inputThread != 0) {
         fprintf(stderr, "Could not create thread.\n");
         exit(-1);
     }
- 
-    if (uit != 0) {
-        fprintf(stderr, "Could not create thread.\n");
-        exit(-1);
-    }
- 
-    //we only wait for the user input thread, one this stops, stop entire program
-    pthread_join(dashThread, NULL);
+
+    pthread_join(dashboardThread, NULL);
 }
  
 void* userInputThreadController(void *arg) {
     struct addrinfo *address;
- 
-    int fd;
- 
     getaddr(host, landerPort, &address);
-    fd = createSocket();
- 
+    int fd;
+	fd = createSocket();
     getUserInput(fd, address);
     exit(0);
 }
  
 void* dashboardController(void *arg) {
-
     struct addrinfo *dashAddress, *landerAddress;
- 
     int dashSocket, landerSocket;
  
     getaddr(host, dashPort, &dashAddress);
@@ -98,17 +90,15 @@ void getUserInput(int fd, struct addrinfo *address) {
     keypad(stdscr, TRUE); 
  
     int input;
-	input = getch();
-
     printw("Controls: \n");
 	printw("Left Arrow Key - Rotate Left \n");
 	printw("Right Arrow Key - Rotate Right \n");
 	printw("Up Arrow Key - Increase Power \n");
 	printw("Down Arrow Key - Reduce Power \n");
 	printw("ESC - Quit The Game");
-	
+ 
  //while the esc key has not been pressed
-    while(input != 27) { 
+    while((input=getch()) != 27) { 
         //moves cursor to middle of the terminal window 
 		move(6, 0); //10,0
         printw("\nAltitude: %sFuel Left: %s", altitude, fuel);
@@ -145,7 +135,6 @@ void getUserInput(int fd, struct addrinfo *address) {
         move(0, 0);
         refresh();
     }
- 
     endwin();
     exit(1);
 }
@@ -158,7 +147,7 @@ void sendCommand(int fd, struct addrinfo *address) {
  
 void updateDashboard(int fd, struct addrinfo *address) {
     char outgoing[buffsize];
-    snprintf(outgoing, sizeof(outgoing), "fuel: %s \naltitude: %s", fuel, altitude);
+    snprintf(outgoing, sizeof(outgoing), "Altitude: %s \nFuel Left: %s", altitude, fuel);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
  
@@ -170,10 +159,9 @@ void getCondition(int fd, struct addrinfo *address) {
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
     msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0);
     incoming[msgsize] = '\0';
- 
-    //get each condition
+
     char *condition = strtok(incoming, ":");
-    char *conditions[4]; //condition returns 4 values
+    char *conditions[4]; 
     int i = 0;
  
     while(condition != NULL) {
@@ -193,13 +181,14 @@ void getaddr(const char *node, const char *service, struct addrinfo **address) {
         .ai_socktype = SOCK_DGRAM
     };
  
-    if(node)
+    if(node) {
         hints.ai_flags = AI_CANONNAME;
-    else
+	}
+    else {
         hints.ai_flags = AI_PASSIVE;
+	}
  
     int err = getaddrinfo(node, service, &hints, address);
- 
     if(err) {
         fprintf(stderr, "Error Getting Address: %s\n", gai_strerror(err));
         exit(1);
@@ -207,13 +196,13 @@ void getaddr(const char *node, const char *service, struct addrinfo **address) {
 }
  
 int createSocket(void) {
-    int sfd = socket(AF_INET, SOCK_DGRAM, 0);
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
  
-    if(sfd == -1) {
+    if(sock == -1) {
         fprintf(stderr, "Error making socket: %s\n", strerror(errno));
         exit(1);
         return 0;
     }
  
-    return sfd;
+    return sock;
 }
