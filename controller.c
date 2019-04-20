@@ -98,9 +98,12 @@ void getUserInput(int fd, struct addrinfo *address) {
     keypad(stdscr, TRUE); 
  
     int key;
-    printw("Press the vetical arrow keys to control the thrust...\n");
-    printw("Press the horizontal arrow keys to control the rotational thrust...\n");
-    printw("Press the ESC key to quit.");
+    printw("Controls: \n");
+	printw("Left Arrow Key - Rotate Left \n");
+	printw("Right Arrow Key - Rotate Right \n");
+	printw("Up Arrow Key - Increase Power \n");
+	printw("Down Arrow Key - Reduce Power \n");
+	printw("ESC - Quit The Game");
  
  //while the esc key has not been pressed
     while((key=getch()) != 27) { 
