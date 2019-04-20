@@ -130,7 +130,7 @@ void getUserInput(int fd, struct addrinfo *address) {
             sendCommand(fd, address);
 			break;
 		default:
-		printw("\Use an arrow key to control the lander.");
+		printw("\nUse an arrow key to control the lander.");
 		break;
 		}
 
