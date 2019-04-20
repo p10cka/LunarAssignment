@@ -17,7 +17,7 @@
 #include <pthread.h>
 #include <semaphore.h>
  
-int getAddressess(const char *node, const char *service, struct addrinfo **address);
+int getAddress(const char *node, const char *service, struct addrinfo **address);
 int createSocket(void);
 void sendCommand(int fd, struct addrinfo *address);
 void getLanderCondition(int fd, struct addrinfo *address);
@@ -199,7 +199,7 @@ int getAddress(const char *node, const char *service, struct addrinfo **address)
     else
         hints.ai_flags = AI_PASSIVE;
  
-    int err = getAddressinfo(node, service, &hints, address);
+    int err = getaddrinfo(node, service, &hints, address);
  
     if(err) {
         fprintf(stderr, "ERROR Getting Address: %s\n", gai_strerror(err));
