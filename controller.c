@@ -97,16 +97,18 @@ void getUserInput(int fd, struct addrinfo *address) {
     //allows arrow keys
     keypad(stdscr, TRUE); 
  
-    int key;
+    int input;
+	input = getch();
+	
     printw("Controls: \n");
 	printw("Left Arrow Key - Rotate Left \n");
 	printw("Right Arrow Key - Rotate Right \n");
 	printw("Up Arrow Key - Increase Power \n");
 	printw("Down Arrow Key - Reduce Power \n");
 	printw("ESC - Quit The Game");
- 
+	
  //while the esc key has not been pressed
-    while((key=getch()) != 27) { 
+    while(input != 27) { 
         //moves cursor to middle of the terminal window 
 		move(6, 0); //10,0
         printw("\nAltitude: %sFuel Left: %s", altitude, fuel);
