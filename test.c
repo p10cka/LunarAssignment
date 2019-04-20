@@ -90,16 +90,19 @@ void* dashThreadController(void *arg) {
 }
  
 void getUserInput(int fd, struct addrinfo *address) {
+    //initialises curses data structures
     initscr();
+    //disables character printing to the screen
     noecho();
-    keypad(stdscr, TRUE); //allow for arrow keys
+    //allows arrow keys
+    keypad(stdscr, TRUE); 
  
     int key;
     printw("Press the vetical arrow keys to control the thrust...\n");
     printw("Press the horizontal arrow keys to control the rotational thrust...\n");
     printw("Press the ESC key to quit.");
  
-    while((key=getch()) != 27) {
+    while((key=getch()) != 27) { //27 = esc key
         move(10, 0);
         printw("\nFuel: %s \nAltitude: %s", fuel, altitude);
         //we can only add more power if at most 90, since max is 100
@@ -203,7 +206,8 @@ int makeSocket(void) {
  
     return sfd;
 }
- 
+
+//do i need this? 
 int bindSocket(int sfd, const struct sockaddr *addr, socklen_t addrlen) {
     int err = bind(sfd, addr, addrlen);
  
