@@ -39,21 +39,22 @@ char *fuel;
 char *altitude;
  
 int main(int argc, const char **argv) {
-    pthread_t dashboardThread;
-    int dashThread = pthread_create(&dashThread, NULL, dashboardController, NULL);
-    if(dashThread != 0) {
-        fprintf(stderr, "Could not create thread.\n");
-        exit(-1);
-    }
-
+    pthread_t dashThread;
+    int dt = pthread_create(&dashThread, NULL, dashboardController, NULL);
+ 
     pthread_t userInputThread;
-    int inputThread  = pthread_create(&userInputThread, NULL, userInputThreadController, NULL);
-    if (inputThread != 0) {
+    int uit  = pthread_create(&userInputThread, NULL, userInputThreadController, NULL);
+ 
+    if(dt != 0) {
         fprintf(stderr, "Could not create thread.\n");
         exit(-1);
     }
-
-    pthread_join(dashboardThread, NULL);
+ 
+    if (uit != 0) {
+        fprintf(stderr, "Could not create thread.\n");
+        exit(-1);
+    }
+ 	pthread_join(dashThread, NULL);
 }
  
 void* userInputThreadController(void *arg) {
