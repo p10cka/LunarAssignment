@@ -1,29 +1,29 @@
 #include <stdio.h>
+#include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <netdb.h>
+
  
 #include <netinet/in.h>
 #include <arpa/inet.h>
  
-#include <ncurses.h>
-#include <string.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <ncurses.h>
+#include <string.h>
+#include <errno.h>
 #include <stdbool.h>
- 
 #include <pthread.h>
 #include <semaphore.h>
  
-int getAddressess(const char *node, const char *service, struct addrinfo **address);
+void getaddr(const char *node, const char *service, struct addrinfo **address);
 int createSocket(void);
 void sendCommand(int fd, struct addrinfo *address);
-void getLanderCondition(int fd, struct addrinfo *address);
-void getInput(int fd, struct addrinfo *address);
+void getCondition(int fd, struct addrinfo *address);
+void getUserInput(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
-void* keyboardController(void *arg);
+void* userInputThreadController(void *arg);
 void* dashboardController(void *arg);
 
 //global variables
@@ -43,7 +43,7 @@ int main(int argc, const char **argv) {
     int dt = pthread_create(&dashThread, NULL, dashboardController, NULL);
  
     pthread_t userInputThread;
-    int uit  = pthread_create(&userInputThread, NULL, keyboardController, NULL);
+    int uit  = pthread_create(&userInputThread, NULL, userInputThreadController, NULL);
  
     if(dt != 0) {
         fprintf(stderr, "Could not create thread.\n");
@@ -54,41 +54,35 @@ int main(int argc, const char **argv) {
         fprintf(stderr, "Could not create thread.\n");
         exit(-1);
     }
- 
-    //we only wait for the user input thread, one this stops, stop entire program
-    pthread_join(dashThread, NULL);
+ 	pthread_join(dashThread, NULL);
 }
  
-void* keyboardController(void *arg) {
+void* userInputThreadController(void *arg) {
     struct addrinfo *address;
- 
+    getaddr(host, landerPort, &address);
     int fd;
- 
-    getAddress(host, landerPort, &address);
-    fd = createSocket();
- 
-    getInput(fd, address);
+	fd = createSocket();
+    getUserInput(fd, address);
     exit(0);
 }
  
 void* dashboardController(void *arg) {
     struct addrinfo *dashAddress, *landerAddress;
+    int dashSocket, landerSocket;
  
-    int dashboardSocket, landerSocket;
+    getaddr(host, dashPort, &dashAddress);
+    getaddr(host, landerPort, &landerAddress);
  
-    getAddress(host, dashPort, &dashAddress);
-    getAddress(host, landerPort, &landerAddress);
- 
-    dashboardSocket = createSocket();
+    dashSocket = createSocket();
     landerSocket = createSocket();
  
     while (1) {
-        getLanderCondition(landerSocket, landerAddress);
-        updateDashboard(dashboardSocket, dashAddress);
+        getCondition(landerSocket, landerAddress);
+        updateDashboard(dashSocket, dashAddress);
     }
 }
  
-void getInput(int fd, struct addrinfo *address) {
+void getUserInput(int fd, struct addrinfo *address) {
     //initialises curses data structures
     initscr();
     //disables character printing to the screen
@@ -147,23 +141,18 @@ void getInput(int fd, struct addrinfo *address) {
 }
  
 void sendCommand(int fd, struct addrinfo *address) {
-    const size_t buffsize = 4096;
     char outgoing[buffsize];
- 
     snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", enginePower, rcsRoll);
-    sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
+    sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);	
 }
  
 void updateDashboard(int fd, struct addrinfo *address) {
-    const size_t buffsize = 4096;
     char outgoing[buffsize];
-    snprintf(outgoing, sizeof(outgoing), "fuel: %s \naltitude: %s", fuel, altitude);
- 
+    snprintf(outgoing, sizeof(outgoing), "Altitude: %s \nFuel Left: %s", altitude, fuel);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
  
-void getLanderCondition(int fd, struct addrinfo *address) {
-    const size_t buffsize = 4096;
+void getCondition(int fd, struct addrinfo *address) {
     char incoming[buffsize], outgoing[buffsize];
     size_t msgsize;
  
@@ -171,10 +160,9 @@ void getLanderCondition(int fd, struct addrinfo *address) {
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
     msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0);
     incoming[msgsize] = '\0';
- 
-    //get each condition
+
     char *condition = strtok(incoming, ":");
-    char *conditions[4]; //condition returns 4 values
+    char *conditions[4]; 
     int i = 0;
  
     while(condition != NULL) {
@@ -187,37 +175,35 @@ void getLanderCondition(int fd, struct addrinfo *address) {
     altitude = strtok(conditions[3], "contact");
 }
  
-int getAddress(const char *node, const char *service, struct addrinfo **address) {
+void getaddr(const char *node, const char *service, struct addrinfo **address) {
     struct addrinfo hints = {
         .ai_flags = 0,
         .ai_family = AF_INET,
         .ai_socktype = SOCK_DGRAM
     };
  
-    if(node)
+    if(node) {
         hints.ai_flags = AI_CANONNAME;
-    else
+	}
+    else {
         hints.ai_flags = AI_PASSIVE;
+	}
  
-    int err = getAddressinfo(node, service, &hints, address);
- 
+    int err = getaddrinfo(node, service, &hints, address);
     if(err) {
-        fprintf(stderr, "ERROR Getting Address: %s\n", gai_strerror(err));
+        fprintf(stderr, "Error Getting Address: %s\n", gai_strerror(err));
         exit(1);
-        return false;
     }
- 
-    return true;
 }
  
 int createSocket(void) {
-    int sfd = socket(AF_INET, SOCK_DGRAM, 0);
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
  
-    if(sfd == -1) {
+    if(sock == -1) {
         fprintf(stderr, "Error making socket: %s\n", strerror(errno));
         exit(1);
         return 0;
     }
  
-    return sfd;
+    return sock;
 }
