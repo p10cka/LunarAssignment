@@ -105,19 +105,19 @@ void getUserInput(int fd, struct addrinfo *address) {
         move(10, 0);
         printw("\nFuel: %s \nAltitude: %s", fuel, altitude);
         //we can only add more power if at most 90, since max is 100
-        if(key == 259 && enginePower <= 90) {
+        if(key == KEY_UP && enginePower <= 90) {
             enginePower += engineInc;
             sendCommand(fd, address);
         }
-        else if(key == 258 && enginePower >= 10) {
+        else if(key == KEY_DOWN && enginePower >= 10) {
             enginePower -= engineInc;
             sendCommand(fd, address);
         }
-        else if(key == 260 && rcsRoll > -0.5) {
+        else if(key == KEY_LEFT && rcsRoll > -0.5) {
             rcsRoll -= rcsInc;
             sendCommand(fd, address);
         }
-        else if(key == 261 && rcsRoll <= 0.4) {
+        else if(key == KEY_RIGHT && rcsRoll <= 0.4) {
             rcsRoll += rcsInc;
             sendCommand(fd, address);
         }
