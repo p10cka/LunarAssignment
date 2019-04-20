@@ -101,10 +101,11 @@ void getUserInput(int fd, struct addrinfo *address) {
     printw("Press the horizontal arrow keys to control the rotational thrust...\n");
     printw("Press the ESC key to quit.");
  
-    while((key=getch()) != 27) { //27 = esc key
-        move(10, 0);
+ //while the esc key has not been pressed
+    while((key=getch()) != 27) { 
+       // move(10, 0);
         printw("\nFuel: %s \nAltitude: %s", fuel, altitude);
-        //we can only add more power if at most 90, since max is 100
+
         switch(key) {
 			case KEY_UP:
 			if (enginePower <= 90)
@@ -134,7 +135,7 @@ void getUserInput(int fd, struct addrinfo *address) {
 		break;
 		}
 
-        move(0, 0);
+       // move(0, 0);
         refresh();
     }
  
