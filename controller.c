@@ -17,16 +17,15 @@
 #include <pthread.h>
 #include <semaphore.h>
  
-void getaddr(const char *node, const char *service, struct addrinfo **address);
+int getaddr(const char *node, const char *service, struct addrinfo **address);
 int createSocket(void);
 void sendCommand(int fd, struct addrinfo *address);
 void getCondition(int fd, struct addrinfo *address);
 void getUserInput(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
 void* userInputThreadController(void *arg);
-void* dashboardController(void *arg);
+void* dashThreadController(void *arg);
 
-//global variables
 char *host = "192.168.56.1"; 
 char *dashPort = "65250";
 char *landerPort = "65200";
@@ -40,7 +39,7 @@ char *altitude;
  
 int main(int argc, const char **argv) {
     pthread_t dashThread;
-    int dt = pthread_create(&dashThread, NULL, dashboardController, NULL);
+    int dt = pthread_create(&dashThread, NULL, dashThreadController, NULL);
  
     pthread_t userInputThread;
     int uit  = pthread_create(&userInputThread, NULL, userInputThreadController, NULL);
@@ -71,7 +70,7 @@ void* userInputThreadController(void *arg) {
     exit(0);
 }
  
-void* dashboardController(void *arg) {
+void* dashThreadController(void *arg) {
 
     struct addrinfo *dashAddress, *landerAddress;
  
@@ -104,9 +103,8 @@ void getUserInput(int fd, struct addrinfo *address) {
  
  //while the esc key has not been pressed
     while((key=getch()) != 27) { 
-        //moves cursor to middle of the terminal window 
-		move(12, 4); //10,0
-        printf("\nAltitude: %s \nFuel Left: %s", altitude, fuel);
+        move(10, 0);
+        printw("\nFuel: %s \nAltitude: %s", fuel, altitude);
 
         switch(key) {
 			case KEY_UP:
@@ -181,7 +179,7 @@ void getCondition(int fd, struct addrinfo *address) {
     altitude = strtok(conditions[3], "contact");
 }
  
-void getaddr(const char *node, const char *service, struct addrinfo **address) {
+int getaddr(const char *node, const char *service, struct addrinfo **address) {
     struct addrinfo hints = {
         .ai_flags = 0,
         .ai_family = AF_INET,
@@ -196,9 +194,12 @@ void getaddr(const char *node, const char *service, struct addrinfo **address) {
     int err = getaddrinfo(node, service, &hints, address);
  
     if(err) {
-        fprintf(stderr, "Error Getting Address: %s\n", gai_strerror(err));
+        fprintf(stderr, "ERROR Getting Address: %s\n", gai_strerror(err));
         exit(1);
+        return false;
     }
+ 
+    return true;
 }
  
 int createSocket(void) {
