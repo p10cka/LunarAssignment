@@ -99,7 +99,7 @@ void getUserInput(int fd, struct addrinfo *address) {
  
     int input;
 	input = getch();
-	
+
     printw("Controls: \n");
 	printw("Left Arrow Key - Rotate Left \n");
 	printw("Right Arrow Key - Rotate Right \n");
@@ -113,7 +113,7 @@ void getUserInput(int fd, struct addrinfo *address) {
 		move(6, 0); //10,0
         printw("\nAltitude: %sFuel Left: %s", altitude, fuel);
 
-        switch(key) {
+        switch(input) {
 			case KEY_UP:
 			if (enginePower <= 90)
 			enginePower += engineInc;
