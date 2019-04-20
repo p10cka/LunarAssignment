@@ -103,7 +103,7 @@ void getUserInput(int fd, struct addrinfo *address) {
  
  //while the esc key has not been pressed
     while((key=getch()) != 27) { 
-       // move(10, 0);
+        move(10, 0);
         printw("\nFuel: %s \nAltitude: %s", fuel, altitude);
 
         switch(key) {
@@ -135,7 +135,7 @@ void getUserInput(int fd, struct addrinfo *address) {
 		break;
 		}
 
-       // move(0, 0);
+        move(0, 0);
         refresh();
     }
  
