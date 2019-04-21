@@ -19,7 +19,7 @@
  
 int getaddr(const char *node, const char *service, struct addrinfo **address);
 int makeSocket(void);
-int writeFile(char text);
+int writeFile(char *text[100]);
 void sendCommand(int fd, struct addrinfo *address);
 void getCondition(int fd, struct addrinfo *address);
 void getUserInput(int fd, struct addrinfo *address);
@@ -206,7 +206,7 @@ int makeSocket(void) {
     return sfd;
 }
 
-int writeFile(char text) {
+int writeFile(char *text[100]) {
     FILE * fp;
     fp = fopen("./datalog.txt","w");
     fprintf (fp, "%s \n", text);
