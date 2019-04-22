@@ -84,6 +84,9 @@ void *serverConn() {
 
 	//make the socket
 	fd = makeSocket();
+	//top bit is dashthreadcontroller
+
+	//bottom bit is get condition
 		
 	const size_t buffsize = 4096;
 	char incoming[buffsize], outgoing[buffsize];

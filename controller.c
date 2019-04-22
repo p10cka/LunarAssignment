@@ -25,6 +25,7 @@ void getUserInput(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
 void* userInputThreadController(void *arg);
 void* dashThreadController(void *arg);
+int printFile(void);
  
 int enginePower = 0;
 int engineInc = 10;
@@ -32,6 +33,7 @@ float rcsInc = 0.1;
 float rcsRoll = 0;
 char *fuel;
 char *altitude;
+char *output;
  
 int main(int argc, const char **argv) {
     pthread_t dashThread;
@@ -106,18 +108,22 @@ void getUserInput(int fd, struct addrinfo *address) {
         if(key == 259 && enginePower <= 90) {
             enginePower += engineInc;
             sendCommand(fd, address);
+            printFile();
         }
         else if(key == 258 && enginePower >= 10) {
             enginePower -= engineInc;
             sendCommand(fd, address);
+            printFile();
         }
         else if(key == 260 && rcsRoll > -0.5) {
             rcsRoll -= rcsInc;
             sendCommand(fd, address);
+            printFile();
         }
         else if(key == 261 && rcsRoll <= 0.4) {
             rcsRoll += rcsInc;
             sendCommand(fd, address);
+            printFile();
         }
  
         move(0, 0);
@@ -202,6 +208,13 @@ int makeSocket(void) {
     }
  
     return sfd;
+}
+
+int printFile(void) {
+    FILE *fp;
+    fp = fopen("DataLog.txt", "w");
+    fprintf(fp, "Test...\n");
+    fclose(fp);
 }
  
 int bindSocket(int sfd, const struct sockaddr *addr, socklen_t addrlen) {
