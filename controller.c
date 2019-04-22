@@ -29,6 +29,7 @@ int printFile(void);
  
 int enginePower = 0;
 int engineInc = 10;
+int *key;
 float rcsInc = 0.1;
 float rcsRoll = 0;
 char *fuel;
@@ -96,7 +97,6 @@ void getUserInput(int fd, struct addrinfo *address) {
     noecho();
     keypad(stdscr, TRUE); //allow for arrow keys
  
-    int key;
     printw("Press the vetical arrow keys to control the thrust...\n");
     printw("Press the horizontal arrow keys to control the rotational thrust...\n");
     printw("Press the ESC key to quit.");
@@ -213,7 +213,7 @@ int makeSocket(void) {
 int printFile(void) {
     FILE *fp;
     fp = fopen("DataLog.txt", "w");
-    fprintf(fp, "Test...\n");
+    fprintf(fp, "Key: %i\n", key);
     fclose(fp);
 }
  
