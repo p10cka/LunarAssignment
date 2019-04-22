@@ -25,11 +25,10 @@ void getUserInput(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
 void* userInputThreadController(void *arg);
 void* dashThreadController(void *arg);
-int printFile(void);
+int printFile(int fd);
  
 int enginePower = 0;
 int engineInc = 10;
-int *key;
 float rcsInc = 0.1;
 float rcsRoll = 0;
 char *fuel;
@@ -96,7 +95,8 @@ void getUserInput(int fd, struct addrinfo *address) {
     initscr();
     noecho();
     keypad(stdscr, TRUE); //allow for arrow keys
- 
+    int key;
+
     printw("Press the vetical arrow keys to control the thrust...\n");
     printw("Press the horizontal arrow keys to control the rotational thrust...\n");
     printw("Press the ESC key to quit.");
@@ -104,26 +104,27 @@ void getUserInput(int fd, struct addrinfo *address) {
     while((key=getch()) != 27) {
         move(10, 0);
         printw("\nFuel: %s \nAltitude: %s", fuel, altitude);
+        
         //we can only add more power if at most 90, since max is 100
         if(key == 259 && enginePower <= 90) {
             enginePower += engineInc;
             sendCommand(fd, address);
-            printFile();
+            printFile(key);
         }
         else if(key == 258 && enginePower >= 10) {
             enginePower -= engineInc;
             sendCommand(fd, address);
-            printFile();
+            printFile(key);
         }
         else if(key == 260 && rcsRoll > -0.5) {
             rcsRoll -= rcsInc;
             sendCommand(fd, address);
-            printFile();
+            printFile(key);
         }
         else if(key == 261 && rcsRoll <= 0.4) {
             rcsRoll += rcsInc;
             sendCommand(fd, address);
-            printFile();
+            printFile(key);
         }
  
         move(0, 0);
@@ -210,10 +211,10 @@ int makeSocket(void) {
     return sfd;
 }
 
-int printFile(void) {
+int printFile(int fd) {
     FILE *fp;
     fp = fopen("DataLog.txt", "w");
-    fprintf(fp, "Key: %i\n", key);
+    fprintf(fp, "Key: %i\n", fd);
     fclose(fp);
 }
  
