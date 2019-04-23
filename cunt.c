@@ -36,8 +36,8 @@ int speed = 0;
 int changeSpeed = 5;
 float rcsInc = 0.1;
 float rcsRoll = 0;
-double fuel;
-double altitude;
+float *fuel;
+float *altitude;
  
 int main(int argc, const char **argv) { //try with *argv
     pthread_t dashboard;
@@ -183,8 +183,11 @@ void clientMessage(int fd, struct addrinfo *address) {
         landerCondition = strtok(NULL, ":");
     }
  
-    fuel = strtok(landerConditions[2], "%");
-    altitude = strtok(landerConditions[3], "contact");
+    char* fuel_ = strtok(landerConditions[2], "%");
+    fuel = fuel_;
+
+    char* altitude_ = strtok(landerConditions[3], "contact");
+    altitude = altitude_;
 }
  
 //todo 
