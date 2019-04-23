@@ -86,60 +86,45 @@ void* dashThreadController(void *arg) {
  
 //done
 void userControls(int fd, struct addrinfo *address) {
-    //initialises curses data structures
-    initscr();
-    //disables character printing to the screen
+   initscr();
     noecho();
-    //allows arrow keys
-    keypad(stdscr, TRUE); 
+    keypad(stdscr, TRUE); //allow for arrow keys
+    int key;
+
+    printw("Press the vetical arrow keys to control the thrust...\n");
+    printw("Press the horizontal arrow keys to control the rotational thrust...\n");
+    printw("Press the ESC key to quit.");
  
-    int input;
-    printw("Controls: \n");
-	printw("Left Arrow Key - Rotate Left \n");
-	printw("Right Arrow Key - Rotate Right \n");
-	printw("Up Arrow Key - Increase Power \n");
-	printw("Down Arrow Key - Reduce Power \n");
-	printw("ESC - Quit The Game \n");
- 
-    //while the esc key has not been pressed
-    while ((input=getch()) != 27) { 
-        //moves cursor to middle of the terminal window 
+    while((key=getch()) != 27) {
         move(10, 0);
         printw("\nFuel: %s \nAltitude: %s", fuel, altitude);
-
-        switch(input) {
-			case KEY_UP:
-			if (enginePower <= 90)
-			enginePower += engineInc;
+        
+        //we can only add more power if at most 90, since max is 100
+        if(key == 259 && enginePower <= 90) {
+            enginePower += engineInc;
             sendCommand(fd, address);
-			break;
-			
-			case KEY_DOWN:
-			if (enginePower >= 10)
-			enginePower -= engineInc;
+            printFile(key);
+        }
+        else if(key == 258 && enginePower >= 10) {
+            enginePower -= engineInc;
             sendCommand(fd, address);
-			break;
-			
-			case KEY_LEFT:
-			if (rcsRoll > -0.5)
-			 rcsRoll -= rcsInc;
+            printFile(key);
+        }
+        else if(key == 260 && rcsRoll > -0.5) {
+            rcsRoll -= rcsInc;
             sendCommand(fd, address);
-			break;
-			
-			case KEY_RIGHT:
-			if (rcsRoll <= 0.4)
-			 rcsRoll += rcsInc;
+            printFile(key);
+        }
+        else if(key == 261 && rcsRoll <= 0.4) {
+            rcsRoll += rcsInc;
             sendCommand(fd, address);
-			break;
-		default:
-        //printw("Key pressed has value = %d\n", input);
-		printw("\nUse an arrow key to control the lander.");
-		break;
-		}
-
+            printFile(key);
+        }
+ 
         move(0, 0);
         refresh();
     }
+ 
     endwin();
     exit(1);
 }
