@@ -86,45 +86,60 @@ void* dashThreadController(void *arg) {
  
 //done
 void userControls(int fd, struct addrinfo *address) {
-   initscr();
+    //initialises curses data structures
+    initscr();
+    //disables character printing to the screen
     noecho();
-    keypad(stdscr, TRUE); //allow for arrow keys
-    int key;
-
-    printw("Press the vetical arrow keys to control the thrust...\n");
-    printw("Press the horizontal arrow keys to control the rotational thrust...\n");
-    printw("Press the ESC key to quit.");
+    //allows arrow keys
+    keypad(stdscr, TRUE); 
  
-    while((key=getch()) != 27) {
-        move(10, 0);
+    int input;
+    printw("Controls: \n");
+	printw("Left Arrow Key - Rotate Left \n");
+	printw("Right Arrow Key - Rotate Right \n");
+	printw("Up Arrow Key - Increase Power \n");
+	printw("Down Arrow Key - Reduce Power \n");
+	printw("ESC - Quit The Game \n");
+ 
+    //while the esc key has not been pressed
+    while ((input=getch()) != 27) { 
+        //moves cursor to middle of the terminal window 
+		move(10, 0);
         printw("\nFuel: %s \nAltitude: %s", fuel, altitude);
-        
-        //we can only add more power if at most 90, since max is 100
-        if(key == 259 && enginePower <= 90) {
-            enginePower += engineInc;
+
+        switch(input) {
+			case KEY_UP:
+			if (enginePower <= 90)
+			enginePower += engineInc;
             sendCommand(fd, address);
-            printFile(key);
-        }
-        else if(key == 258 && enginePower >= 10) {
-            enginePower -= engineInc;
+			break;
+			
+			case KEY_DOWN:
+			if (enginePower >= 10)
+			enginePower -= engineInc;
             sendCommand(fd, address);
-            printFile(key);
-        }
-        else if(key == 260 && rcsRoll > -0.5) {
-            rcsRoll -= rcsInc;
+			break;
+			
+			case KEY_LEFT:
+			if (rcsRoll > -0.5)
+			 rcsRoll -= rcsInc;
             sendCommand(fd, address);
-            printFile(key);
-        }
-        else if(key == 261 && rcsRoll <= 0.4) {
-            rcsRoll += rcsInc;
+			break;
+			
+			case KEY_RIGHT:
+			if (rcsRoll <= 0.4)
+			 rcsRoll += rcsInc;
             sendCommand(fd, address);
-            printFile(key);
-        }
- 
+			break;
+		default:
+        //printw("Key pressed has value = %d\n", input);
+		printw("\nUse an arrow key to control the lander.");
+		break;
+		}
+
         move(0, 0);
         refresh();
     }
- 
     endwin();
     exit(1);
 }
@@ -157,7 +172,7 @@ void clientMessage(int fd, struct addrinfo *address) {
     msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0);		/* Don't need the senders address */
 	incoming[msgsize] = '\0';
 	
-		printf("reply \"%s\"\n", incoming);
+		//printf("reply \"%s\"\n", incoming);
  
     char *landerCondition = strtok(incoming, ":"); //split into key:value pair
     char *landerConditions[4]; //try changing to 3
