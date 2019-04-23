@@ -36,8 +36,8 @@ int speed = 0;
 int changeSpeed = 5;
 float rcsInc = 0.1;
 float rcsRoll = 0;
-char *fuel;
-char *altitude;
+float fuel;
+float altitude;
  
 int main(int argc, const char **argv) { //try with *argv
     pthread_t dashboard;
@@ -157,7 +157,7 @@ void sendCommand(int fd, struct addrinfo *address) {
 void updateDashboard(int fd, struct addrinfo *address) {
     char outgoing[buffsize];
     
-    snprintf(outgoing, sizeof(outgoing), "fuel: %s \naltitude: %s", fuel, altitude);
+    snprintf(outgoing, sizeof(outgoing), "fuel: %.2f \naltitude: %.2f", fuel, altitude);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
  
@@ -183,8 +183,11 @@ void clientMessage(int fd, struct addrinfo *address) {
         landerCondition = strtok(NULL, ":");
     }
  
-    fuel = strtok(landerConditions[2], "%");
-    altitude = strtok(landerConditions[3], "contact");
+    char *fuel1 = strtok(landerConditions[2], "%");
+    fuel = strtof(fuel1, NULL);
+
+    char *altitude1 = strtok(landerConditions[3], "contact");
+    altitude = strtof(altitude1, NULL);
 }
  
 //todo 
