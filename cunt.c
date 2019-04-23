@@ -36,8 +36,8 @@ int speed = 0;
 int changeSpeed = 5;
 float rcsInc = 0.1;
 float rcsRoll = 0;
-char *fuel;
-char *altitude;
+float *fuel;
+float *altitude;
  
 int main(int argc, const char **argv) { //try with *argv
     pthread_t dashboard;
@@ -70,13 +70,12 @@ void* userInputThreadController(void *arg) {
 void* dashThreadController(void *arg) {
     struct addrinfo *dashAddress, *landerAddress;
  
-    int dashSocket, landerSocket;
- 
     getaddr(host, dashPort, &dashAddress);
     getaddr(host, landerPort, &landerAddress);
  
-    dashSocket = createSocket();
-    landerSocket = createSocket();
+    int dashboard = createSocket();
+    
+    int lander = createSocket();
  
     while (1) {
         clientMessage(landerSocket, landerAddress);
@@ -104,8 +103,9 @@ void userControls(int fd, struct addrinfo *address) {
     //while the esc key has not been pressed
     while ((input=getch()) != 27) { 
         //moves cursor to middle of the terminal window 
-		move(10, 0);
-        printw("\nFuel: %s \nAltitude: %s", fuel, altitude);
+		move(8, 0);
+        printw("\nFuel: %s",fuel);
+        printw("\nAltitude: %s",altitude);
 
         switch(input) {
 			case KEY_UP:
@@ -156,8 +156,8 @@ void sendCommand(int fd, struct addrinfo *address) {
  
 void updateDashboard(int fd, struct addrinfo *address) {
     char outgoing[buffsize];
-    snprintf(outgoing, sizeof(outgoing), "fuel: %s \naltitude: %s", fuel, altitude);
- 
+
+    snprintf(outgoing, sizeof(outgoing), "fuel: %.2f \naltitude: %.2f", fuel, altitude);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
  
