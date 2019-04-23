@@ -36,8 +36,8 @@ int speed = 0;
 int changeSpeed = 5;
 float rcsInc = 0.1;
 float rcsRoll = 0;
-double fuel;
-double altitude;
+double *fuel;
+double *altitude;
  
 int main(int argc, const char **argv) { //try with *argv
     pthread_t dashboard;
@@ -78,8 +78,8 @@ void* dashThreadController(void *arg) {
     int lander = createSocket();
  
     while (1) {
-        clientMessage(dashboard, landerAddress);
-        updateDashboard(lander, dashAddress);
+        clientMessage(lander, landerAddress);
+        updateDashboard(dashboard, dashAddress);
     }
 }
  
@@ -156,7 +156,7 @@ void sendCommand(int fd, struct addrinfo *address) {
  
 void updateDashboard(int fd, struct addrinfo *address) {
     char outgoing[buffsize];
-
+    
     snprintf(outgoing, sizeof(outgoing), "fuel: %.2f \naltitude: %.2f", fuel, altitude);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
@@ -183,17 +183,16 @@ void clientMessage(int fd, struct addrinfo *address) {
         landerCondition = strtok(NULL, ":");
     }
  
-    char* fuel_ = strtok(landerConditions[2], "%");
-    fuel = fuel_;
+    char *fuel1 = strtok(landerConditions[2], "%");
+    fuel = strtod(fuel1, NULL);
 
-    char* altitude_ = strtok(landerConditions[3], "contact");
-    altitude = altitude_;
+    char altitude1 = strtok(landerConditions[3], "contact");
+    altitude = strtod(altitude1, NULL);
 }
  
 //todo 
 int getaddr(const char *hostname, const char *service, struct addrinfo **address) {
     struct addrinfo hints = {
-        .ai_flags = 0,
         .ai_family = AF_INET,
         .ai_socktype = SOCK_DGRAM
     };
