@@ -104,9 +104,8 @@ void userControls(int fd, struct addrinfo *address) {
     //while the esc key has not been pressed
     while ((input=getch()) != 27) { 
         //moves cursor to middle of the terminal window 
-		move (8, 0); 
-        printw("\nAltitude: %s", altitude);
-        printw("\nFuel Left: %s", fuel);
+        move(10, 0);
+        printw("\nFuel: %s \nAltitude: %s", fuel, altitude);
 
         switch(input) {
 			case KEY_UP:
