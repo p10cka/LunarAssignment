@@ -32,8 +32,8 @@ char *dashPort = "65250";
 char *landerPort = "65200";
 const size_t buffsize = 4096;
 
-int enginePower = 0;
-int engineInc = 10;
+int speed = 0;
+int changeSpeed = 5;
 float rcsInc = 0.1;
 float rcsRoll = 0;
 char *fuel;
@@ -52,7 +52,7 @@ int main(int argc, const char **argv) { //try with *argv
     assert(tr == 0);
     
     pthread_join(dashboard, NULL);
-    //exit(0);
+    exit(0);
 }
  
 void* userInputThreadController(void *arg) {
@@ -84,7 +84,7 @@ void* dashThreadController(void *arg) {
     }
 }
  
-//done
+//need to change cases
 void userControls(int fd, struct addrinfo *address) {
     //initialises curses data structures
     initscr();
@@ -109,34 +109,37 @@ void userControls(int fd, struct addrinfo *address) {
 
         switch(input) {
 			case KEY_UP:
-			if (enginePower <= 90)
-			enginePower += engineInc;
+			if (speed <= 90) {
+			speed += changeSpeed;
             sendCommand(fd, address);
+            }
 			break;
 			
 			case KEY_DOWN:
-			if (enginePower >= 10)
-			enginePower -= engineInc;
+			if (speed >= 10) {
+			speed -= changeSpeed;
             sendCommand(fd, address);
+            }
 			break;
 			
 			case KEY_LEFT:
-			if (rcsRoll > -0.5)
+			if (rcsRoll > -0.5) {
 			 rcsRoll -= rcsInc;
             sendCommand(fd, address);
+            }
 			break;
 			
 			case KEY_RIGHT:
-			if (rcsRoll <= 0.4)
+			if (rcsRoll <= 0.4) {
 			 rcsRoll += rcsInc;
             sendCommand(fd, address);
+            }
 			break;
 		default:
         //printw("Key pressed has value = %d\n", input);
 		printw("\nUse an arrow key to control the lander.");
 		break;
 		}
-
         move(0, 0);
         refresh();
     }
@@ -147,7 +150,7 @@ void userControls(int fd, struct addrinfo *address) {
 void sendCommand(int fd, struct addrinfo *address) {
     char outgoing[buffsize];
  
-    snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", enginePower, rcsRoll);
+    snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", speed, rcsRoll);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
  
@@ -170,9 +173,7 @@ void clientMessage(int fd, struct addrinfo *address) {
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 	
     msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0);		/* Don't need the senders address */
-	incoming[msgsize] = '\0';
-	
-		//printf("reply \"%s\"\n", incoming);
+	incoming[msgsize] = '\0';	
  
     char *landerCondition = strtok(incoming, ":"); //split into key:value pair
     char *landerConditions[4]; //try changing to 3
@@ -189,7 +190,6 @@ void clientMessage(int fd, struct addrinfo *address) {
 //todo 
 int getaddr(const char *hostname, const char *service, struct addrinfo **address) {
     struct addrinfo hints = {
-        .ai_flags = 0, //try without this
         .ai_family = AF_INET,
         .ai_socktype = SOCK_DGRAM
     };
