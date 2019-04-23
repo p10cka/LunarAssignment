@@ -186,7 +186,7 @@ void clientMessage(int fd, struct addrinfo *address) {
     char *fuel1 = strtok(landerConditions[2], "%");
     fuel = strtod(fuel1, NULL);
 
-    char altitude1 = strtok(landerConditions[3], "contact");
+    char *altitude1 = strtok(landerConditions[3], "contact");
     altitude = strtod(altitude1, NULL);
 }
  
