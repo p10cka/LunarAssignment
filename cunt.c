@@ -104,8 +104,8 @@ void userControls(int fd, struct addrinfo *address) {
     while ((input=getch()) != 27) { 
         //moves cursor to middle of the terminal window 
 		move(8, 0);
-        printw("\nFuel: %s",fuel);
-        printw("\nAltitude: %s",altitude);
+        printw("\nFuel: %.2f",fuel);
+        printw("\nAltitude: %.2f",altitude);
 
         switch(input) {
 			case KEY_UP:
