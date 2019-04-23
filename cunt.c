@@ -102,9 +102,9 @@ void userControls(int fd, struct addrinfo *address) {
 	printw("ESC - Quit The Game \n");
  
     //while the esc key has not been pressed
-    while((input=getch()) != 27) { 
+    while ((input=getch()) != 27) { 
         //moves cursor to middle of the terminal window 
-		move(8, 5); 
+		move (8, 0); 
         printw("\nAltitude: %s", altitude);
         printw("\nFuel Left: %s", fuel);
 
