@@ -2,10 +2,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
- 
+#include <assert.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
- 
 #include <ncurses.h>
 #include <string.h>
 #include <errno.h>
@@ -13,11 +12,10 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdbool.h>
- 
 #include <pthread.h>
 #include <semaphore.h>
  
-//method declarations
+/* Method Declarations */
 int getaddr(const char *node, const char *service, struct addrinfo **address);
 void sendCommand(int fd, struct addrinfo *address);
 void clientMessage(int fd, struct addrinfo *address);
@@ -28,8 +26,8 @@ void* dashThreadController(void *arg);
 int createSocket(void);
 int printFile(int fd);
  
- //global variables
-char *host = "192.168.56.1"; 
+/* Global Variables*/
+char *host = "192.168.56.1"; //localhost?
 char *dashPort = "65250";
 char *landerPort = "65200";
 const size_t buffsize = 4096;
@@ -74,8 +72,8 @@ void* dashThreadController(void *arg) {
  
     int dashSocket, landerSocket;
  
-    getaddr(dashHost, dashPort, &dashAddress);
-    getaddr(landerHost, landerPort, &landerAddress);
+    getaddr(host, dashPort, &dashAddress);
+    getaddr(host, landerPort, &landerAddress);
  
     dashSocket = createSocket();
     landerSocket = createSocket();
@@ -217,6 +215,7 @@ int getaddr(const char *hostname, const char *service, struct addrinfo **address
  
 //done 
 int createSocket(void) {
+    int sock;
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == -1) {
         fprintf(stderr, "error making socket: %s\n", strerror(errno));
