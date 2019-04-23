@@ -36,8 +36,8 @@ int speed = 0;
 int changeSpeed = 5;
 float rcsInc = 0.1;
 float rcsRoll = 0;
-float *fuel;
-float *altitude;
+double fuel;
+double altitude;
  
 int main(int argc, const char **argv) { //try with *argv
     pthread_t dashboard;
@@ -78,8 +78,8 @@ void* dashThreadController(void *arg) {
     int lander = createSocket();
  
     while (1) {
-        clientMessage(landerSocket, landerAddress);
-        updateDashboard(dashSocket, dashAddress);
+        clientMessage(dashboard, landerAddress);
+        updateDashboard(lander, dashAddress);
     }
 }
  
@@ -190,6 +190,7 @@ void clientMessage(int fd, struct addrinfo *address) {
 //todo 
 int getaddr(const char *hostname, const char *service, struct addrinfo **address) {
     struct addrinfo hints = {
+        .ai_flags = 0,
         .ai_family = AF_INET,
         .ai_socktype = SOCK_DGRAM
     };
