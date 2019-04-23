@@ -36,8 +36,8 @@ int speed = 0;
 int changeSpeed = 5;
 float rcsInc = 0.1;
 float rcsRoll = 0;
-double *fuel;
-double *altitude;
+double fuel;
+double altitude;
  
 int main(int argc, const char **argv) { //try with *argv
     pthread_t dashboard;
