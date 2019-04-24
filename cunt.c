@@ -92,8 +92,8 @@ void* dashboardCommunication(void *arg) {
 
     //Semaphore Wait
     int rc;
-    rc = sem_wait(&sem);
-    assert(rc == 0);
+    //rc = sem_wait(&sem);
+    //assert(rc == 0);
 
     getaddr(host, dashPort, &dashAddress);
     int dashboard = createSocket();
@@ -102,8 +102,8 @@ void* dashboardCommunication(void *arg) {
     }
 
     //Semaphore Post
-    rc = sem_post(&sem);
-    assert(rc == 0);
+    //rc = sem_post(&sem);
+    //assert(rc == 0);
 }
 
 void* serverCommunication(void *arg) {
