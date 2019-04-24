@@ -42,12 +42,12 @@ int mainEngine = 0;
 float rcsRoll = 0;
 
 /* Main Method */
-int main(int argc, const char **argv)
+int main(int argc, const char *argv)
 { 
     pthread_t dashboardCommunicationThread;
     pthread_t userInputThread;
     pthread_t serverCommunicationThread;
-    pthread_t dataLogThread;
+    //pthread_t dataLogThread;
     fp = fopen("DataLog.txt", "w");
     int dc, ui, sc, dl, rc;
 
@@ -64,8 +64,8 @@ int main(int argc, const char **argv)
     assert(sc == 0);
 
     //Data Log Thread
-    dl = pthread_create(&dataLogThread, NULL, dataLog, NULL);
-    assert(dl == 0);
+    //dl = pthread_create(&dataLogThread, NULL, dataLog, NULL);
+    //assert(dl == 0);
 
     rc = sem_init(&sem, 0, 1);
     assert(rc == 0);
@@ -260,7 +260,7 @@ void clientMessage(int fd, struct addrinfo *address)
 }
 
 /* Logs User Data to a Text File */
-void *dataLog(int fd)
+void dataLog(int fd)
 {
     fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
