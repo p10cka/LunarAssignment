@@ -108,21 +108,12 @@ void* dashboardCommunication(void *arg) {
 
 void* serverCommunication(void *arg) {
     struct addrinfo *landerAddress;
-    
-    //Semaphore Wait
-    int rc;
-    rc = sem_wait(&sem);
-    assert(rc == 0);
-    
     getaddr(host, landerPort, &landerAddress);
     int lander = createSocket();
+    
     while (1) {
         clientMessage(lander, landerAddress);
     }
-
-    //Semaphore Post
-    rc = sem_post(&sem);
-    assert(rc == 0);
 }
  
 //need to change cases
@@ -142,11 +133,6 @@ void userControls(int fd, struct addrinfo *address) {
 	printw("Down Arrow Key - Reduce Power \n");
 	printw("ESC - Quit The Game \n");
  
-
-    //Semaphore Wait
-    int rc;
-    rc = sem_wait(&sem);
-    assert(rc == 0);
     //while the esc key has not been pressed
     while ((input=getch()) != 27) { 
         //moves cursor to middle of the terminal window 
@@ -190,9 +176,6 @@ void userControls(int fd, struct addrinfo *address) {
         move(0, 0);
         refresh();
     }
-        //Semaphore Post
-    rc = sem_post(&sem);
-    assert(rc == 0);
     endwin();
     exit(1);
 }
@@ -216,7 +199,11 @@ void clientMessage(int fd, struct addrinfo *address) {
 	int i = 0;
 	//struct sockaddr clientaddr;
 	//socklen_t addrlen = sizeof(clientaddr);
- 
+    
+    int rc;
+    rc = sem_wait(&sem);
+    assert(rc == 0);
+
 		strcpy(outgoing, "condition:?");
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 	
@@ -236,6 +223,10 @@ void clientMessage(int fd, struct addrinfo *address) {
 
     char *altitude1 = strtok(landerConditions[3], "contact");
     altitude = strtof(altitude1, NULL);
+
+        //Semaphore Post
+    rc = sem_post(&sem);
+    assert(rc == 0);
 }
  
 //todo 
