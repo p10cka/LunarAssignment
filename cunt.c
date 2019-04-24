@@ -260,7 +260,7 @@ void clientMessage(int fd, struct addrinfo *address)
 }
 
 /* Logs User Data to a Text File */
-void dataLog(int fd)
+void *dataLog(int fd)
 {
     fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
