@@ -62,7 +62,7 @@ int main(int argc, const char **argv) { //try with *argv
     assert(dl == 0);*/
     rc = sem_init(&sem, 0, 1);
     assert(rc == 0);
-    
+
     pthread_join(dashboardCommunicationThread, NULL);
     exit(0);
 }
@@ -79,11 +79,12 @@ void* userInput(void *arg) {
     getaddr(host, landerPort, &address);
     fd = createSocket();
     userControls(fd, address);
-    exit(0);
 
     //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
+
+    exit(0);
 }
  
 void* dashboardCommunication(void *arg) {
