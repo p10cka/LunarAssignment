@@ -35,7 +35,7 @@ char *landerPort = "65200";
 const size_t buffsize = 4096;
 float fuel;
 float altitude;
-int speed = 0;
+int mainEngine = 0;
 float rcsRoll = 0;
  
 int main(int argc, const char **argv) { //try with *argv
@@ -84,7 +84,7 @@ void* userInput(void *arg) {
    // rc = sem_post(&sem);
     //assert(rc == 0);
 
-    exit(0); //check this should be here
+    exit(0);
 }
  
 void* dashboardCommunication(void *arg) {
@@ -142,6 +142,11 @@ void userControls(int fd, struct addrinfo *address) {
 	printw("Down Arrow Key - Reduce Power \n");
 	printw("ESC - Quit The Game \n");
  
+
+    //Semaphore Wait
+    int rc;
+    rc = sem_wait(&sem);
+    assert(rc == 0);
     //while the esc key has not been pressed
     while ((input=getch()) != 27) { 
         //moves cursor to middle of the terminal window 
@@ -151,15 +156,15 @@ void userControls(int fd, struct addrinfo *address) {
 
         switch(input) {
 			case KEY_UP:
-			if (speed <= 90) {
-			speed += 5;
+			if (mainEngine <= 90) {
+			mainEngine += 5;
             sendCommand(fd, address);
             }
 			break;
 			
 			case KEY_DOWN:
-			if (speed >= 10) {
-			speed -= 5;
+			if (mainEngine >= 10) {
+			mainEngine -= 5;
             sendCommand(fd, address);
             }
 			break;
@@ -185,20 +190,21 @@ void userControls(int fd, struct addrinfo *address) {
         move(0, 0);
         refresh();
     }
+        //Semaphore Post
+    rc = sem_post(&sem);
+    assert(rc == 0);
     endwin();
     exit(1);
 }
  
 void sendCommand(int fd, struct addrinfo *address) {
     char outgoing[buffsize];
- 
-    snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", speed, rcsRoll);
+    snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", mainEngine, rcsRoll);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
  
 void updateDashboard(int fd, struct addrinfo *address) {
-    char outgoing[buffsize];
-    
+    char outgoing[buffsize]; 
     snprintf(outgoing, sizeof(outgoing), "fuel: %.2f \naltitude: %.2f", fuel, altitude);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
