@@ -211,7 +211,7 @@ void clientMessage(int fd, struct addrinfo *address) {
 	incoming[msgsize] = '\0';	
  
     char *landerCondition = strtok(incoming, ":"); //split into key:value pair
-    char *landerConditions[4]; //try changing to 3
+    char *landerConditions[3]; //try changing to 3
     
     while(landerCondition != NULL) { 
         landerConditions[i++] = landerCondition;
