@@ -21,7 +21,7 @@ void sendCommand(int fd, struct addrinfo *address);
 void clientMessage(int fd, struct addrinfo *address);
 void userControls(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
-void* userInputThreadController(void *arg);
+void* userInput(void *arg);
 void* dashboardCommunication(void *arg);
 void* serverCommunication(void *arg);
 int createSocket(void);
@@ -38,31 +38,33 @@ int speed = 0;
 float rcsRoll = 0;
  
 int main(int argc, const char **argv) { //try with *argv
-    pthread_t dashboard;
+    pthread_t dashboardCommunicationThread;
     pthread_t userInputThread;
+    pthread_t serverCommunicationThread;
+    //pthread_t dataLogThread;
     int dc, ui, sc, dl;
 
     //Dashboard Communication Thread
-    dc = pthread_create(&dashboardCommunications, NULL, dashboardCommunication, NULL);
+    dc = pthread_create(&dashboardCommunicationThread, NULL, dashboardCommunication, NULL);
     assert(dc == 0);
 
     //User Input Thread
-    ui = pthread_create(&userInput, NULL, userInputThreadController, NULL);
+    ui = pthread_create(&userInputThread, NULL, userInput, NULL);
     assert(ui == 0);
 
     //Server Communication Thread
-    sc = pthread_create(&serverCommunications, NULL, serverCommunication, NULL);
+    sc = pthread_create(&serverCommunicationThread, NULL, serverCommunication, NULL);
     assert(sc == 0);
 
     /*//Data Log Thread
-    dl = pthread_create(&userInput, NULL, userInputThreadController, NULL);
+    dl = pthread_create(&dataLogThread, NULL, dataLog, NULL);
     assert(dl == 0);*/
     
-    pthread_join(dashboardCommunications, NULL);
+    pthread_join(dashboardCommunicationThread, NULL);
     exit(0);
 }
  
-void* userInputThreadController(void *arg) {
+void* userInput(void *arg) {
     struct addrinfo *address;
     int fd;
     getaddr(host, landerPort, &address);
