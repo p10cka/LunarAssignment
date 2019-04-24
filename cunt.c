@@ -73,18 +73,18 @@ void* userInput(void *arg) {
 
     //Semaphore Wait
     int rc;
-    rc = sem_wait(&sem);
-    assert(rc == 0);
+    //rc = sem_wait(&sem);
+    //assert(rc == 0);
 
     getaddr(host, landerPort, &address);
     fd = createSocket();
     userControls(fd, address);
 
     //Semaphore Post
-    rc = sem_post(&sem);
-    assert(rc == 0);
+   // rc = sem_post(&sem);
+    //assert(rc == 0);
 
-    exit(0);
+    exit(0); //check this should be here
 }
  
 void* dashboardCommunication(void *arg) {
