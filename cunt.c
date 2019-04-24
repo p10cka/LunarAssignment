@@ -197,10 +197,10 @@ void clientMessage(int fd, struct addrinfo *address) {
     char incoming[buffsize], outgoing[buffsize];
     size_t msgsize;
 	int i = 0;
+    int rc;
 	//struct sockaddr clientaddr;
 	//socklen_t addrlen = sizeof(clientaddr);
-    
-    int rc;
+
     rc = sem_wait(&sem);
     assert(rc == 0);
 
@@ -211,7 +211,7 @@ void clientMessage(int fd, struct addrinfo *address) {
 	incoming[msgsize] = '\0';	
  
     char *landerCondition = strtok(incoming, ":"); //split into key:value pair
-    char *landerConditions[4]; //try changing to 3
+    char *landerConditions[4]; 
     
     while(landerCondition != NULL) { 
         landerConditions[i++] = landerCondition;
@@ -224,7 +224,7 @@ void clientMessage(int fd, struct addrinfo *address) {
     char *altitude1 = strtok(landerConditions[3], "contact");
     altitude = strtof(altitude1, NULL);
 
-        //Semaphore Post
+    //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
 }
@@ -235,13 +235,6 @@ int getaddr(const char *hostname, const char *service, struct addrinfo **address
         .ai_family = AF_INET,
         .ai_socktype = SOCK_DGRAM
     };
- 
-    if(hostname) {
-        hints.ai_flags = AI_CANONNAME;
-    }
-    else {
-        hints.ai_flags = AI_PASSIVE;
-    }
 
     int err = getaddrinfo(hostname, service, &hints, address);
  
