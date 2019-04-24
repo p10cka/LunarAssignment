@@ -8,6 +8,7 @@
 #include <ncurses.h>
 #include <string.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
@@ -29,9 +30,11 @@ void printFile(int fd);
  
 /* Global Variables*/
 static sem_t sem;
+FILE *fp;
 char *host = "192.168.56.1"; //localhost?
-char *dashPort = "65250";
-char *landerPort = "65200";
+char *dashboardPort = "65250";
+char *serverPort = "65200";
+bool escPressed = false;
 const size_t buffsize = 4096;
 float fuel;
 float altitude;
@@ -39,6 +42,7 @@ int mainEngine = 0;
 float rcsRoll = 0;
  
 int main(int argc, const char **argv) { //try with *argv
+    fp = fopen("DataLog.txt", "w");
     pthread_t dashboardCommunicationThread;
     pthread_t userInputThread;
     pthread_t serverCommunicationThread;
@@ -57,12 +61,12 @@ int main(int argc, const char **argv) { //try with *argv
     sc = pthread_create(&serverCommunicationThread, NULL, serverCommunication, NULL);
     assert(sc == 0);
 
-    /*//Data Log Thread
-    dl = pthread_create(&dataLogThread, NULL, dataLog, NULL);
-    assert(dl == 0);*/
+    //Data Log Thread
+    //dl = pthread_create(&dataLogThread, NULL, dataLog, NULL);
+    //assert(dl == 0);
+
     rc = sem_init(&sem, 0, 1);
     assert(rc == 0);
-
     pthread_join(dashboardCommunicationThread, NULL);
     exit(0);
 }
@@ -70,49 +74,27 @@ int main(int argc, const char **argv) { //try with *argv
 void* userInput(void *arg) {
     struct addrinfo *address;
     int fd;
-
-    //Semaphore Wait
-    int rc;
-    //rc = sem_wait(&sem);
-    //assert(rc == 0);
-
-    getaddr(host, landerPort, &address);
+    getaddr(host, serverPort, &address);
     fd = createSocket();
     userControls(fd, address);
-
-    //Semaphore Post
-   // rc = sem_post(&sem);
-    //assert(rc == 0);
-
     exit(0);
 }
  
 void* dashboardCommunication(void *arg) {
-    struct addrinfo *dashAddress;
-
-    //Semaphore Wait
-    int rc;
-    //rc = sem_wait(&sem);
-    //assert(rc == 0);
-
-    getaddr(host, dashPort, &dashAddress);
-    int dashboard = createSocket();
+    struct addrinfo *dashboardAddress;
+    getaddr(host, dashboardPort, &dashboardAddress);
+    int dashboardSocket = createSocket();
     while (1) {
-        updateDashboard(dashboard, dashAddress);
+        updateDashboard(dashboardSocket, dashboardAddress);
     }
-
-    //Semaphore Post
-    //rc = sem_post(&sem);
-    //assert(rc == 0);
 }
 
 void* serverCommunication(void *arg) {
-    struct addrinfo *landerAddress;
-    getaddr(host, landerPort, &landerAddress);
-    int lander = createSocket();
-    
+    struct addrinfo *serverAddress;
+    getaddr(host, serverPort, &serverAddress);
+    int serverSocket = createSocket();
     while (1) {
-        clientMessage(lander, landerAddress);
+        clientMessage(serverSocket, serverAddress);
     }
 }
  
@@ -145,6 +127,7 @@ void userControls(int fd, struct addrinfo *address) {
 			if (mainEngine <= 90) {
 			mainEngine += 5;
             sendCommand(fd, address);
+            printFile(input);
             }
 			break;
 			
@@ -152,6 +135,7 @@ void userControls(int fd, struct addrinfo *address) {
 			if (mainEngine >= 10) {
 			mainEngine -= 5;
             sendCommand(fd, address);
+            printFile(input);
             }
 			break;
 			
@@ -159,6 +143,7 @@ void userControls(int fd, struct addrinfo *address) {
 			if (rcsRoll > -0.5) {
 			 rcsRoll -= 0.1;
             sendCommand(fd, address);
+            printFile(input);
             }
 			break;
 			
@@ -166,6 +151,7 @@ void userControls(int fd, struct addrinfo *address) {
 			if (rcsRoll <= 0.4) {
 			 rcsRoll += 0.1;
             sendCommand(fd, address);
+            printFile(input);
             }
 			break;
 		default:
@@ -176,6 +162,8 @@ void userControls(int fd, struct addrinfo *address) {
         move(0, 0);
         refresh();
     }
+    escPressed = true;
+    printFile(input);
     endwin();
     exit(1);
 }
@@ -187,6 +175,7 @@ void sendCommand(int fd, struct addrinfo *address) {
     rc = sem_wait(&sem);
     assert(rc == 0); 
 
+    //Critical Section
     snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", mainEngine, rcsRoll);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
    
@@ -201,6 +190,7 @@ void updateDashboard(int fd, struct addrinfo *address) {
     rc = sem_wait(&sem);
     assert(rc == 0); 
     
+    //Crititcal Section
     snprintf(outgoing, sizeof(outgoing), "fuel: %.2f \naltitude: %.2f", fuel, altitude);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
     
@@ -220,6 +210,7 @@ void clientMessage(int fd, struct addrinfo *address) {
     rc = sem_wait(&sem);
     assert(rc == 0);
 
+    //Critical Section
 		strcpy(outgoing, "condition:?");
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 	
@@ -246,7 +237,6 @@ void clientMessage(int fd, struct addrinfo *address) {
 }
  
  //done ?? removed node thing
-
 int getaddr(const char *hostname, const char *service, struct addrinfo **address) {
     struct addrinfo hints = {
         .ai_family = AF_INET,
@@ -264,7 +254,6 @@ int getaddr(const char *hostname, const char *service, struct addrinfo **address
 	
 }
  
-//done 
 int createSocket(void) {
     int sock;
     sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -276,10 +265,14 @@ int createSocket(void) {
 	return sock;
 }
  
-//done 
 void printFile(int fd) {
-    FILE *fp;
-    fp = fopen("DataLog.txt", "w");
-    fprintf(fp, "Key: %i\n", fd);
+
+    
+    fprintf(fp, "Key Pressed: %i\n", fd);
+    fprintf(fp, "Lander Altitude: %.2f\n" , altitude);
+    fprintf(fp, "Lander Fuel: %.2f\n", fuel);
+
+    if (escPressed) { 
     fclose(fp);
+    }
 } 
