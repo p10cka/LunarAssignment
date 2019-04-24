@@ -22,7 +22,8 @@ void clientMessage(int fd, struct addrinfo *address);
 void userControls(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
 void* userInputThreadController(void *arg);
-void* dashThreadController(void *arg);
+void* dashboardCommunication(void *arg);
+void* serverCommunication(void *arg);
 int createSocket(void);
 int printFile(int fd);
  
@@ -31,55 +32,60 @@ char *host = "192.168.56.1"; //localhost?
 char *dashPort = "65250";
 char *landerPort = "65200";
 const size_t buffsize = 4096;
-
-int speed = 0;
-int changeSpeed = 5;
-float rcsInc = 0.1;
-float rcsRoll = 0;
 float fuel;
 float altitude;
+int speed = 0;
+float rcsRoll = 0;
  
 int main(int argc, const char **argv) { //try with *argv
     pthread_t dashboard;
     pthread_t userInputThread;
-    int rc;
-    int tr;
+    int dc, ui, sc, dl;
 
-    rc = pthread_create(&dashboard, NULL, dashThreadController, NULL);
-    assert(rc == 0);
+    //Dashboard Communication Thread
+    dc = pthread_create(&dashboardCommunications, NULL, dashboardCommunication, NULL);
+    assert(dc == 0);
 
-    tr = pthread_create(&userInputThread, NULL, userInputThreadController, NULL);
-    assert(tr == 0);
+    //User Input Thread
+    ui = pthread_create(&userInput, NULL, userInputThreadController, NULL);
+    assert(ui == 0);
+
+    //Server Communication Thread
+    sc = pthread_create(&serverCommunications, NULL, serverCommunication, NULL);
+    assert(sc == 0);
+
+    /*//Data Log Thread
+    dl = pthread_create(&userInput, NULL, userInputThreadController, NULL);
+    assert(dl == 0);*/
     
-    pthread_join(dashboard, NULL);
+    pthread_join(dashboardCommunications, NULL);
     exit(0);
 }
  
 void* userInputThreadController(void *arg) {
     struct addrinfo *address;
- 
     int fd;
- 
     getaddr(host, landerPort, &address);
     fd = createSocket();
- 
     userControls(fd, address);
     exit(0);
 }
  
-void* dashThreadController(void *arg) {
-    struct addrinfo *dashAddress, *landerAddress;
- 
+void* dashboardCommunication(void *arg) {
+    struct addrinfo *dashAddress;
     getaddr(host, dashPort, &dashAddress);
-    getaddr(host, landerPort, &landerAddress);
- 
     int dashboard = createSocket();
-    
+    while (1) {
+        updateDashboard(dashboard, dashAddress);
+    }
+}
+
+void* serverCommunication(void *arg) {
+    struct addrinfo *landerAddress;
+    getaddr(host, landerPort, &landerAddress);
     int lander = createSocket();
- 
     while (1) {
         clientMessage(lander, landerAddress);
-        updateDashboard(dashboard, dashAddress);
     }
 }
  
@@ -110,28 +116,28 @@ void userControls(int fd, struct addrinfo *address) {
         switch(input) {
 			case KEY_UP:
 			if (speed <= 90) {
-			speed += changeSpeed;
+			speed += 5;
             sendCommand(fd, address);
             }
 			break;
 			
 			case KEY_DOWN:
 			if (speed >= 10) {
-			speed -= changeSpeed;
+			speed -= 5;
             sendCommand(fd, address);
             }
 			break;
 			
 			case KEY_LEFT:
 			if (rcsRoll > -0.5) {
-			 rcsRoll -= rcsInc;
+			 rcsRoll -= 0.1;
             sendCommand(fd, address);
             }
 			break;
 			
 			case KEY_RIGHT:
 			if (rcsRoll <= 0.4) {
-			 rcsRoll += rcsInc;
+			 rcsRoll += 0.1;
             sendCommand(fd, address);
             }
 			break;
@@ -207,7 +213,7 @@ int getaddr(const char *hostname, const char *service, struct addrinfo **address
     int err = getaddrinfo(hostname, service, &hints, address);
  
     if (err) {
-        fprintf(stderr, "Error getting address: %s\n", gai_strerror(err));
+        fprintf(stderr, "error getting address: %s\n", gai_strerror(err));
         exit(1);
 		return false;
     }
