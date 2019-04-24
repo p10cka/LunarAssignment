@@ -28,6 +28,7 @@ int createSocket(void);
 void printFile(int fd);
  
 /* Global Variables*/
+static sem_t sem;
 char *host = "192.168.56.1"; //localhost?
 char *dashPort = "65250";
 char *landerPort = "65200";
@@ -42,7 +43,7 @@ int main(int argc, const char **argv) { //try with *argv
     pthread_t userInputThread;
     pthread_t serverCommunicationThread;
     //pthread_t dataLogThread;
-    int dc, ui, sc, dl;
+    int dc, ui, sc, dl, rc;
 
     //Dashboard Communication Thread
     dc = pthread_create(&dashboardCommunicationThread, NULL, dashboardCommunication, NULL);
@@ -59,6 +60,8 @@ int main(int argc, const char **argv) { //try with *argv
     /*//Data Log Thread
     dl = pthread_create(&dataLogThread, NULL, dataLog, NULL);
     assert(dl == 0);*/
+    rc = sem_init(&sem, 0, 1);
+    assert(rc == 0);
     
     pthread_join(dashboardCommunicationThread, NULL);
     exit(0);
@@ -67,28 +70,58 @@ int main(int argc, const char **argv) { //try with *argv
 void* userInput(void *arg) {
     struct addrinfo *address;
     int fd;
+
+    //Semaphore Wait
+    int rc;
+    rc = sem_wait(&sem);
+    assert(rc == 0);
+
     getaddr(host, landerPort, &address);
     fd = createSocket();
     userControls(fd, address);
     exit(0);
+
+    //Semaphore Post
+    rc = sem_post(&sem);
+    assert(rc == 0);
 }
  
 void* dashboardCommunication(void *arg) {
     struct addrinfo *dashAddress;
+
+    //Semaphore Wait
+    int rc;
+    rc = sem_wait(&sem);
+    assert(rc == 0);
+
     getaddr(host, dashPort, &dashAddress);
     int dashboard = createSocket();
     while (1) {
         updateDashboard(dashboard, dashAddress);
     }
+
+    //Semaphore Post
+    rc = sem_post(&sem);
+    assert(rc == 0);
 }
 
 void* serverCommunication(void *arg) {
     struct addrinfo *landerAddress;
+    
+    //Semaphore Wait
+    int rc;
+    rc = sem_wait(&sem);
+    assert(rc == 0);
+    
     getaddr(host, landerPort, &landerAddress);
     int lander = createSocket();
     while (1) {
         clientMessage(lander, landerAddress);
     }
+
+    //Semaphore Post
+    rc = sem_post(&sem);
+    assert(rc == 0);
 }
  
 //need to change cases
