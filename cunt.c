@@ -181,15 +181,31 @@ void userControls(int fd, struct addrinfo *address) {
 }
  
 void sendCommand(int fd, struct addrinfo *address) {
+    int rc;
     char outgoing[buffsize];
+
+    rc = sem_wait(&sem);
+    assert(rc == 0); 
+
     snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", mainEngine, rcsRoll);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
+   
+    rc = sem_post(&sem);
+    assert(rc == 0);
 }
  
 void updateDashboard(int fd, struct addrinfo *address) {
-    char outgoing[buffsize]; 
+    int rc;
+    char outgoing[buffsize];
+
+    rc = sem_wait(&sem);
+    assert(rc == 0); 
+    
     snprintf(outgoing, sizeof(outgoing), "fuel: %.2f \naltitude: %.2f", fuel, altitude);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
+    
+    rc = sem_post(&sem);
+    assert(rc == 0);
 }
  
 //kinda done 
@@ -229,7 +245,8 @@ void clientMessage(int fd, struct addrinfo *address) {
     assert(rc == 0);
 }
  
-//todo 
+ //done ?? removed node thing
+
 int getaddr(const char *hostname, const char *service, struct addrinfo **address) {
     struct addrinfo hints = {
         .ai_family = AF_INET,
