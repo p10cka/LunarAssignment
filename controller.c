@@ -29,7 +29,7 @@ int createSocket(void);
 int getaddr(const char *node, const char *service, struct addrinfo **address);
 
 /* Global Variables*/
-static sem_t sem;
+static sem_t sem; //check if static
 FILE *fp;
 char *host = "192.168.56.1"; //localhost?
 char *dashboardPort = "65250";
@@ -93,6 +93,7 @@ void *dashboardCommunication(void *arg)
     while (1)
     {
         updateDashboard(dashboardSocket, dashboardAddress);
+        sleep(3);
     }
 }
 
