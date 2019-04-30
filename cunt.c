@@ -42,7 +42,7 @@ int mainEngine = 0;
 float rcsRoll = 0;
 
 /* Main Method */
-int main(int argc, const char *argv)
+int main(int argc, const char *argv) //**argv
 { 
     pthread_t dashboardCommunicationThread;
     pthread_t userInputThread;
