@@ -93,7 +93,7 @@ void *dashboardCommunication(void *arg)
     while (1)
     {
         updateDashboard(dashboardSocket, dashboardAddress);
-        sleep(0.1);
+        sleep(0.5);
     }
 }
 
@@ -263,6 +263,10 @@ void clientMessage(int fd, struct addrinfo *address)
 /* Logs User Data to a Text File */
 void dataLog(int fd)
 {
+    int rc;
+    rc = sem_wait(&sem);
+    assert(rc == 0);
+
     fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n\n", fuel);
@@ -271,6 +275,9 @@ void dataLog(int fd)
     {
         fclose(fp);
     }
+
+    rc = sem_post(&sem);
+    assert(rc == 0);
 }
 
 /* Create Socket Utility Function */
