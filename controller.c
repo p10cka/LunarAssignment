@@ -310,11 +310,12 @@ void dataLog(int fd)
     int rc;
     rc = sem_wait(&sem);
     assert(rc == 0);
-
+    fprintf(fp, "-------------\n");
     fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n\n", fuel);
-    fprintf(fp, "Points: %i\n\n", points);
+    fprintf(fp, "Data-Points: %i\n", points);
+    fprintf(fp, "-------------\n");
 
     if (escPressed)
     {
