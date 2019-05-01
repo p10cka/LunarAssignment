@@ -19,25 +19,28 @@
 /* Method Declarations */
 void *userInput(void *arg);
 void *dashboardCommunication(void *arg);
-void *serverCommunication(void *arg);
+void *serverCommunicationHandler(void *arg);
 void userControls(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
-void sendCommand(int fd, struct addrinfo *address);
+void serverCommunication(int fd, struct addrinfo *address);
 void clientMessage(int fd, struct addrinfo *address);
 void dataLog(int fd);
 int createSocket(void);
-int getaddr(const char *node, const char *service, struct addrinfo **address);
+int getaddr(const char *hostname, const char *service, struct addrinfo **address);
+void logData(int fd, struct addrinfo *address)
 
 /* Global Variables*/
 static sem_t sem; //check if static
 FILE *fp;
-char *host = "192.168.56.1"; //localhost?
+//char *host = "192.168.56.1"; //localhost?
+char *host = "127.0.1.1"; //localhost?
 char *dashboardPort = "65250";
 char *serverPort = "65200";
 bool escPressed = false;
 const size_t buffsize = 4096;
 float fuel;
 float altitude;
+int points;
 int mainEngine = 0;
 float rcsRoll = 0;
 
@@ -46,7 +49,7 @@ int main(int argc, const char *argv)
 { 
     pthread_t dashboardCommunicationThread;
     pthread_t userInputThread;
-    pthread_t serverCommunicationThread;
+    pthread_t serverCommunicationHandlerThread;
     //pthread_t dataLogThread;
     fp = fopen("DataLog.txt", "w");
     int dc, ui, sc, dl, rc;
@@ -60,7 +63,7 @@ int main(int argc, const char *argv)
     assert(ui == 0);
 
     //Server Communication Thread
-    sc = pthread_create(&serverCommunicationThread, NULL, serverCommunication, NULL);
+    sc = pthread_create(&serverCommunicationHandlerThread, NULL, serverCommunicationHandler, NULL);
     assert(sc == 0);
 
     //Data Log Thread
@@ -98,7 +101,7 @@ void *dashboardCommunication(void *arg)
 }
 
 /* Sets up communication with the Lander Server */
-void *serverCommunication(void *arg)
+void *serverCommunicationHandler(void *arg)
 {
     struct addrinfo *serverAddress;
     getaddr(host, serverPort, &serverAddress);
@@ -106,6 +109,7 @@ void *serverCommunication(void *arg)
     while (1)
     {
         clientMessage(serverSocket, serverAddress);
+        logData(serverSocket, serverAddress);
     }
 }
 
@@ -141,7 +145,7 @@ void userControls(int fd, struct addrinfo *address)
             if (mainEngine <= 90)
             {
                 mainEngine += 5;
-                sendCommand(fd, address);
+                serverCommunication(fd, address);
                 dataLog(input);
             }
             break;
@@ -150,7 +154,7 @@ void userControls(int fd, struct addrinfo *address)
             if (mainEngine >= 10)
             {
                 mainEngine -= 5;
-                sendCommand(fd, address);
+                serverCommunication(fd, address);
                 dataLog(input);
             }
             break;
@@ -159,7 +163,7 @@ void userControls(int fd, struct addrinfo *address)
             if (rcsRoll > -0.5)
             {
                 rcsRoll -= 0.1;
-                sendCommand(fd, address);
+                serverCommunication(fd, address);
                 dataLog(input);
             }
             break;
@@ -168,7 +172,7 @@ void userControls(int fd, struct addrinfo *address)
             if (rcsRoll <= 0.4)
             {
                 rcsRoll += 0.1;
-                sendCommand(fd, address);
+                serverCommunication(fd, address);
                 dataLog(input);
             }
             break;
@@ -204,7 +208,7 @@ void updateDashboard(int fd, struct addrinfo *address)
 }
 
 /* Sends Commands to the Lander Server */
-void sendCommand(int fd, struct addrinfo *address)
+void serverCommunication(int fd, struct addrinfo *address)
 {
     int rc;
     char outgoing[buffsize];
@@ -216,6 +220,46 @@ void sendCommand(int fd, struct addrinfo *address)
     snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", mainEngine, rcsRoll);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 
+    rc = sem_post(&sem);
+    assert(rc == 0);
+}
+
+/* Sends and Receives Messages to the Client */
+void logData(int fd, struct addrinfo *address)
+{
+    char incoming[buffsize], outgoing[buffsize];
+    size_t msgsize;
+    int i = 0;
+    int rc;
+    //struct sockaddr clientaddr;
+    //socklen_t addrlen = sizeof(clientaddr);
+
+    rc = sem_wait(&sem);
+    assert(rc == 0);
+
+    //Critical Section
+    strcpy(outgoing, "terrain:?");
+    sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
+
+    msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0); /* Don't need the senders address */
+    incoming[msgsize] = '\0';
+
+    char *terrain = strtok(incoming, ":"); //split into key:value pair
+    char *terrainConditions[4];
+
+    while (terrain != NULL)
+    {
+        terrainConditions[i++] = landerCondition;
+        terrain = strtok(NULL, ":");
+    }
+
+    char *points1 = strtok(terrainConditions[2], "data-x");
+    points = atoi(points1, NULL);
+
+    //char *data-x1 = strtok(landerConditions[3], ",");
+    //data-x = strtof(altitude1, NULL);
+
+    //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
 }
@@ -270,6 +314,7 @@ void dataLog(int fd)
     fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n\n", fuel);
+    fprintf(fp, "Points: %i\n\n", points);
 
     if (escPressed)
     {
