@@ -269,7 +269,7 @@ void retrieveLanderData(int fd, struct addrinfo *address)
     }
 
     char *points1 = strtok(terrainConditions[2], "data-x");
-    points = atoi(points1, NULL);
+    points = atoi(points1);
 
     //Semaphore Post
     rc = sem_post(&sem);
