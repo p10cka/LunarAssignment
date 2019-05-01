@@ -23,11 +23,10 @@ void *serverCommunicationHandler(void *arg);
 void userControls(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
 void serverCommunication(int fd, struct addrinfo *address);
-void clientMessage(int fd, struct addrinfo *address);
+void retrieveLanderData(int fd, struct addrinfo *address);
 void dataLog(int fd);
 int createSocket(void);
 int getaddr(const char *hostname, const char *service, struct addrinfo **address);
-void logData(int fd, struct addrinfo *address)
 
 /* Global Variables*/
 static sem_t sem; //check if static
@@ -67,7 +66,7 @@ int main(int argc, const char *argv)
     assert(sc == 0);
 
     //Data Log Thread
-    //dl = pthread_create(&dataLogThread, NULL, dataLog, NULL);
+    //dl = pthread_create(&dataLogThread, NULL, logData, NULL);
     //assert(dl == 0);
 
     rc = sem_init(&sem, 0, 1);
@@ -108,8 +107,7 @@ void *serverCommunicationHandler(void *arg)
     int serverSocket = createSocket();
     while (1)
     {
-        clientMessage(serverSocket, serverAddress);
-        logData(serverSocket, serverAddress);
+        retrieveLanderData(serverSocket, serverAddress);
     }
 }
 
@@ -225,7 +223,7 @@ void serverCommunication(int fd, struct addrinfo *address)
 }
 
 /* Sends and Receives Messages to the Client */
-void logData(int fd, struct addrinfo *address)
+void retrieveLanderData(int fd, struct addrinfo *address)
 {
     char incoming[buffsize], outgoing[buffsize];
     size_t msgsize;
@@ -237,53 +235,11 @@ void logData(int fd, struct addrinfo *address)
     rc = sem_wait(&sem);
     assert(rc == 0);
 
-    //Critical Section
-    strcpy(outgoing, "terrain:?");
-    sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
-
-    msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0); /* Don't need the senders address */
-    incoming[msgsize] = '\0';
-
-    char *terrain = strtok(incoming, ":"); //split into key:value pair
-    char *terrainConditions[4];
-
-    while (terrain != NULL)
-    {
-        terrainConditions[i++] = landerCondition;
-        terrain = strtok(NULL, ":");
-    }
-
-    char *points1 = strtok(terrainConditions[2], "data-x");
-    points = atoi(points1, NULL);
-
-    //char *data-x1 = strtok(landerConditions[3], ",");
-    //data-x = strtof(altitude1, NULL);
-
-    //Semaphore Post
-    rc = sem_post(&sem);
-    assert(rc == 0);
-}
-
-/* Sends and Receives Messages to the Client */
-void clientMessage(int fd, struct addrinfo *address)
-{
-    char incoming[buffsize], outgoing[buffsize];
-    size_t msgsize;
-    int i = 0;
-    int rc;
-    //struct sockaddr clientaddr;
-    //socklen_t addrlen = sizeof(clientaddr);
-
-    rc = sem_wait(&sem);
-    assert(rc == 0);
-
-    //Critical Section
+    //Get Condition
     strcpy(outgoing, "condition:?");
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
-
     msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0); /* Don't need the senders address */
     incoming[msgsize] = '\0';
-
     char *landerCondition = strtok(incoming, ":"); //split into key:value pair
     char *landerConditions[4];
 
@@ -295,9 +251,25 @@ void clientMessage(int fd, struct addrinfo *address)
 
     char *fuel1 = strtok(landerConditions[2], "%");
     fuel = strtof(fuel1, NULL);
-
     char *altitude1 = strtok(landerConditions[3], "contact");
     altitude = strtof(altitude1, NULL);
+
+    //Get Terrain
+    strcpy(outgoing, "terrain:?");
+    sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
+    msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0); /* Don't need the senders address */
+    incoming[msgsize] = '\0';
+    char *terrain = strtok(incoming, ":"); //split into key:value pair
+    char *terrainConditions[4];
+
+    while (terrain != NULL)
+    {
+        terrainConditions[i++] = terrainCondition;
+        terrain = strtok(NULL, ":");
+    }
+
+    char *points1 = strtok(terrainConditions[2], "data-x");
+    points = atoi(points1, NULL);
 
     //Semaphore Post
     rc = sem_post(&sem);
@@ -313,7 +285,7 @@ void dataLog(int fd)
 
     fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
-    fprintf(fp, "Lander Fuel: %.2f\n\n", fuel);
+    fprintf(fp, "Lander Fuel: %.2f\n", fuel);
     fprintf(fp, "Points: %i\n\n", points);
 
     if (escPressed)
