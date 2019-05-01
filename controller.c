@@ -264,7 +264,7 @@ void retrieveLanderData(int fd, struct addrinfo *address)
 
     while (terrain != NULL)
     {
-        terrainConditions[i++] = terrainCondition;
+        terrainConditions[i++] = terrain;
         terrain = strtok(NULL, ":");
     }
 
