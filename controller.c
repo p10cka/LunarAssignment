@@ -32,8 +32,8 @@ void logData(int fd, struct addrinfo *address);
 /* Global Variables*/
 static sem_t sem; //check if static
 FILE *fp;
-//char *host = "192.168.56.1"; //localhost?
-char *host = "127.0.1.1"; //localhost?
+char *host = "192.168.56.1"; 
+//char *host = "127.0.1.1"; 
 char *dashboardPort = "65250";
 char *serverPort = "65200";
 bool escPressed = false;
