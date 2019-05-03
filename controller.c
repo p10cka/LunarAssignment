@@ -42,7 +42,7 @@ const size_t buffsize = 4096;
 float fuel;
 float altitude;
 int points;
-int data-x;
+int dataX;
 int mainEngine = 0;
 float rcsRoll = 0;
 
@@ -248,9 +248,8 @@ void getData(int fd, struct addrinfo *address)
     char *points1 = strtok(terrainConditions[2], "data-x");
     points = atoi(points1);
 
-    char *data-x1 = strtok(landerConditions[3], "data-y");
-    data-x = atoi(data-x1);
-
+    char *dataX1 = strtok(landerConditions[3], "data-y");
+    dataX = atoi(dataX1);
     //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
@@ -308,7 +307,7 @@ void dataLog(void)
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n", fuel);
     fprintf(fp, "Data-Points: %i\n", points);
-    fprintf(fp, "Data-X: %i\n", data-x);
+    fprintf(fp, "Data-X: %i\n", dataX);
 
 
     rc = sem_post(&sem);
