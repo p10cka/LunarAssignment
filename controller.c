@@ -33,8 +33,8 @@ void getData(int fd, struct addrinfo *address);
 /* Global Variables*/
 FILE *fp;
 static sem_t sem; //check if static
-char *host = "192.168.56.1"; 
-//char *host = "127.0.1.1"; 
+char *host = "192.168.56.1";
+//char *host = "127.0.1.1";
 char *dashboardPort = "65250";
 char *serverPort = "65200";
 bool escPressed = false;
@@ -47,7 +47,7 @@ float rcsRoll = 0;
 
 /* Main Method */
 int main(int argc, const char *argv)
-{ 
+{
     pthread_t dashboardCommunicationThread;
     pthread_t userInputThread;
     pthread_t serverCommunicationHandlerThread;
@@ -93,6 +93,7 @@ void *dashboardCommunication(void *arg)
     struct addrinfo *dashboardAddress;
     getAddress(host, dashboardPort, &dashboardAddress);
     int dashboardSocket = createSocket();
+    
     while (1)
     {
         updateDashboard(dashboardSocket, dashboardAddress);
@@ -106,6 +107,7 @@ void *serverCommunicationHandler(void *arg)
     struct addrinfo *serverAddress;
     getAddress(host, serverPort, &serverAddress);
     int serverSocket = createSocket();
+    
     while (1)
     {
         clientMessage(serverSocket, serverAddress);
@@ -119,10 +121,11 @@ void *dataLogHandler(void *arg)
     getAddress(host, serverPort, &serverAddress);
     int dataSocket = createSocket();
 
-    while(!escPressed) {
-    getData(dataSocket, serverAddress);
-    dataLog();
-    sleep(1);
+    while (1)
+    {
+        getData(dataSocket, serverAddress);
+        dataLog();
+        sleep(1);
     }
     fclose(fp);
 }
@@ -216,7 +219,6 @@ void serverCommunication(int fd, struct addrinfo *address)
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
 
-
 /* Sends and Receives Messages to the Client */
 void getData(int fd, struct addrinfo *address)
 {
@@ -276,7 +278,7 @@ void clientMessage(int fd, struct addrinfo *address)
         landerConditions[i++] = landerCondition;
         landerCondition = strtok(NULL, ":");
     }
-    
+
     //Semaphore wait
     rc = sem_wait(&sem);
     assert(rc == 0);
@@ -292,7 +294,6 @@ void clientMessage(int fd, struct addrinfo *address)
     rc = sem_post(&sem);
     assert(rc == 0);
 }
-
 
 /* Logs User Data to a Text File */
 void dataLog(void)
@@ -330,8 +331,7 @@ int getAddress(const char *hostname, const char *service, struct addrinfo **addr
 {
     struct addrinfo hints = {
         .ai_family = AF_INET,
-        .ai_socktype = SOCK_DGRAM
-    };
+        .ai_socktype = SOCK_DGRAM};
 
     int err = getaddrinfo(hostname, service, &hints, address);
 
