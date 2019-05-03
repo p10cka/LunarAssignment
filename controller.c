@@ -30,6 +30,7 @@ int getAddress(const char *hostname, const char *service, struct addrinfo **addr
 //void logData(int fd, struct addrinfo *address);
 
 /* Global Variables*/
+FILE *fp;
 static sem_t sem; //check if static
 char *host = "192.168.56.1"; 
 //char *host = "127.0.1.1"; 
@@ -290,7 +291,6 @@ void clientMessage(int fd, struct addrinfo *address)
 void *dataLog(void *arg)
 {
     //open the file
-    FILE *fp;
     fp = fopen("Log.txt", "w");
 
    while (1) {
