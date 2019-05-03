@@ -122,11 +122,9 @@ void *dataLogHandler(void *arg)
     while(!escPressed) {
     getData(dataSocket, serverAddress);
     dataLog();
+    sleep(1);
     }
-    
     fclose(fp);
-
-
 }
 
 /* User Controls to Control the Lander */
@@ -311,8 +309,6 @@ void dataLog(void)
 
     rc = sem_post(&sem);
     assert(rc == 0);
-
-
 }
 
 /* Create Socket Utility Function */
