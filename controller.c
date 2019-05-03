@@ -1,3 +1,13 @@
+/*
+ * Author: Ryan Pickering
+ * Student Number: 17013352
+ * Version: 1
+ * Date: 16/05/2019
+ * 
+ * A controller class that communicates with a Lunar Lander Server and 
+ * Dashboard to display information, control the lander and log data.
+ */
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -24,15 +34,16 @@ void *dataLogHandler(void *arg);
 void userControls(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
 void serverCommunication(int fd, struct addrinfo *address);
-void clientMessage(int fd, struct addrinfo *address);
+void getTerrain(int fd, struct addrinfo *address);
+void getState(int fd, struct addrinfo *address);
+void getCondition(int fd, struct addrinfo *address);
 void dataLog(void);
 int createSocket(void);
 int getAddress(const char *hostname, const char *service, struct addrinfo **address);
-void getData(int fd, struct addrinfo *address);
 
 /* Global Variables*/
 FILE *fp;
-static sem_t sem; //check if static
+static sem_t sem;
 char *host = "192.168.56.1";
 //char *host = "127.0.1.1";
 char *dashboardPort = "65250";
@@ -44,6 +55,7 @@ float altitude;
 int points;
 int dataX;
 int dataY;
+int xPosition;
 int mainEngine = 0;
 float rcsRoll = 0;
 
@@ -72,8 +84,11 @@ int main(int argc, const char *argv)
     dl = pthread_create(&dataLogThread, NULL, dataLogHandler, NULL);
     assert(dl == 0);
 
+    //Initialise the Semaphore
     rc = sem_init(&sem, 0, 1);
     assert(rc == 0);
+
+    //Wait for the Dashboard Communication Thread to Terminate
     pthread_join(dashboardCommunicationThread, NULL);
     exit(0);
 }
@@ -82,10 +97,10 @@ int main(int argc, const char *argv)
 void *userInput(void *arg)
 {
     struct addrinfo *address;
-    int fd;
     getAddress(host, serverPort, &address);
-    fd = createSocket();
-    userControls(fd, address);
+    int userSocket = createSocket();
+
+    userControls(userSocket, address);
     exit(0);
 }
 
@@ -96,6 +111,7 @@ void *dashboardCommunication(void *arg)
     getAddress(host, dashboardPort, &dashboardAddress);
     int dashboardSocket = createSocket();
     
+    //Update the dashboard every 1 second
     while (1)
     {
         updateDashboard(dashboardSocket, dashboardAddress);
@@ -110,26 +126,33 @@ void *serverCommunicationHandler(void *arg)
     getAddress(host, serverPort, &serverAddress);
     int serverSocket = createSocket();
     
+    //Continuously get the condition of the lander
     while (1)
     {
-        clientMessage(serverSocket, serverAddress);
+        getCondition(serverSocket, serverAddress);
     }
 }
 
+/* Opens the LanderLog.txt file to log data, connects to the server
+and logs data related to the status of the lander */
 void *dataLogHandler(void *arg)
 {
+    //Opens the LanderLog.txt file for writing
     fp = fopen("LanderLog.txt", "w");
     struct addrinfo *serverAddress;
     getAddress(host, serverPort, &serverAddress);
     int dataSocket = createSocket();
 
+    //While 1, get terrain data and log the data.
     while (1)
     {
-        getData(dataSocket, serverAddress);
+        getTerrain(dataSocket, serverAddress);
+        getState(dataSocket, serverAddress);
         dataLog();
-        sleep(1);
+        sleep(1); //Sleep for 1 second 
     }
-    fclose(fp);
+    //Close the file
+    fclose(fp); 
 }
 
 /* User Controls to Control the Lander */
@@ -160,22 +183,25 @@ void userControls(int fd, struct addrinfo *address)
 
         switch (input)
         {
+        //Increase engine power by 5 
         case KEY_UP:
-            if (mainEngine <= 90)
+            if (mainEngine <= 95)
             {
                 mainEngine += 5;
                 serverCommunication(fd, address);
             }
             break;
 
+        //Decrease engine power by 5
         case KEY_DOWN:
-            if (mainEngine >= 10)
+            if (mainEngine >= 5)
             {
                 mainEngine -= 5;
                 serverCommunication(fd, address);
             }
             break;
 
+        //Tilt the lander left by 0.1
         case KEY_LEFT:
             if (rcsRoll > -0.5)
             {
@@ -184,6 +210,7 @@ void userControls(int fd, struct addrinfo *address)
             }
             break;
 
+        //Tilt the lander right by 0.1
         case KEY_RIGHT:
             if (rcsRoll <= 0.4)
             {
@@ -191,6 +218,8 @@ void userControls(int fd, struct addrinfo *address)
                 serverCommunication(fd, address);
             }
             break;
+
+        //If any other key is pressed, instruct the user what to do.    
         default:
             //printw("Key pressed has value = %d\n", input);
             printw("\nUse an arrow key to control the lander.");
@@ -204,7 +233,7 @@ void userControls(int fd, struct addrinfo *address)
     exit(0);
 }
 
-/* Updates the Lander Dashboard */
+/* Updates the Lander Dashboard with Fuel and Altitude */
 void updateDashboard(int fd, struct addrinfo *address)
 {
     char outgoing[buffsize];
@@ -212,17 +241,16 @@ void updateDashboard(int fd, struct addrinfo *address)
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
 
-/* Sends Commands to the Lander Server */
+/* Sends Commands to the Lander Server to Control the Lander */
 void serverCommunication(int fd, struct addrinfo *address)
 {
     char outgoing[buffsize];
-    //Critical Section
     snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", mainEngine, rcsRoll);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
 
-/* Sends and Receives Messages to the Client */
-void getData(int fd, struct addrinfo *address)
+/* Requests Terrain Information from the Lander Server */
+void getTerrain(int fd, struct addrinfo *address)
 {
     char incoming[buffsize], outgoing[buffsize];
     size_t msgsize;
@@ -243,9 +271,11 @@ void getData(int fd, struct addrinfo *address)
         terrainConditions[i++] = terrain;
         terrain = strtok(NULL, ":");
     }
+    //Semaphore Wait
     rc = sem_wait(&sem);
     assert(rc == 0);
 
+    //Critical Section
     char *points1 = strtok(terrainConditions[2], "data-x");
     points = atoi(points1);
 
@@ -254,13 +284,50 @@ void getData(int fd, struct addrinfo *address)
 
     char *dataY1 = strtok(terrainConditions[4], "...");
     dataY = atoi(dataY1);
+   
     //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
 }
 
-/* Sends and Receives Messages to the Client */
-void clientMessage(int fd, struct addrinfo *address)
+/* Requests the State of the Lander from the Lander Server*/
+void getState(int fd, struct addrinfo *address)
+{
+    char incoming[buffsize], outgoing[buffsize];
+    size_t msgsize;
+    int i = 0;
+    int rc;
+
+    strcpy(outgoing, "state:?");
+    sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
+
+    msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0); /* Don't need the senders address */
+    incoming[msgsize] = '\0';
+
+    char *state = strtok(incoming, ":"); //split into key:value pair
+    char *stateConditions[7];
+
+    while (state != NULL)
+    {
+        stateConditions[i++] = state;
+        state = strtok(NULL, ":");
+    }
+
+    //Semaphore Wait
+    rc = sem_wait(&sem);
+    assert(rc == 0);
+
+    //Critical Section
+    char *xPosition1 = strtok(stateConditions[2], "y");
+    xPosition = atoi(xPosition1);
+
+    //Semaphore Post
+    rc = sem_post(&sem);
+    assert(rc == 0);
+}
+
+/* Requests Condition Information from the Lander Server */
+void getCondition(int fd, struct addrinfo *address)
 {
     char incoming[buffsize], outgoing[buffsize];
     size_t msgsize;
@@ -303,23 +370,24 @@ void clientMessage(int fd, struct addrinfo *address)
 void dataLog(void)
 {
     int rc;
+    //Semaphore Wait
     rc = sem_wait(&sem);
     assert(rc == 0);
 
     fprintf(fp, "----------------------------------------------\n");
-    //fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n", fuel);
     fprintf(fp, "Data-Points: %i\n", points);
-    fprintf(fp, "Data-X: %i\n", dataX);
-    fprintf(fp, "Data-Y: %i\n", dataY);
+    fprintf(fp, "X Ground Coordinates: %i\n", dataX);
+    fprintf(fp, "Y Ground Coordinates: %i\n", dataY);
 
-
+    //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
 }
 
-/* Create Socket Utility Function */
+/* Create Socket Utility Function 
+    Creates a socket or returns an error if unsuccessful. */
 int createSocket(void)
 {
     int sock;
@@ -333,7 +401,8 @@ int createSocket(void)
     return sock;
 }
 
-/* Get Address Utility Function */
+/* Get Address Utility Function 
+    Gets the requested address or returns an error if unsuccessful. */
 int getAddress(const char *hostname, const char *service, struct addrinfo **address)
 {
     struct addrinfo hints = {
