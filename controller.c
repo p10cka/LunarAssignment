@@ -300,12 +300,12 @@ void dataLog(int fd)
 
     while (!escPressed) {
         while (1) {    
-    fprintf(fp, "-------------\n");
+    fprintf(fp, "--@@-----@@------\n");
     fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n\n", fuel);
     fprintf(fp, "Data-Points: %i\n", points);
-    fprintf(fp, "-------------\n");
+    fprintf(fp, "---@@@@-----\n");
         sleep(1);
         }
     }
