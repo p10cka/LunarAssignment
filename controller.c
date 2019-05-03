@@ -31,7 +31,6 @@ int getAddress(const char *hostname, const char *service, struct addrinfo **addr
 
 /* Global Variables*/
 static sem_t sem; //check if static
-FILE *fp;
 char *host = "192.168.56.1"; 
 //char *host = "127.0.1.1"; 
 char *dashboardPort = "65250";
@@ -291,19 +290,19 @@ void clientMessage(int fd, struct addrinfo *address)
 void *dataLog(void *arg)
 {
     //open the file
-    fp = fopen("DataLog.txt", "w");
+    FILE *fp;
+    fp = fopen("Log.txt", "w");
 
    while (!escPressed) {
     fprintf(fp, "--@@-----@@------\n");
     //fprintf(fp, "Key Pressed: %i\n", fd);
     //fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     //fprintf(fp, "Lander Fuel: %.2f\n\n", fuel);
-   // fprintf(fp, "Data-Points: %i\n", points);
+    //fprintf(fp, "Data-Points: %i\n", points);
     fprintf(fp, "---@@@@-----\n");
        // sleep(1);
-        }
-       
-        fclose(fp);
+    }   
+    fclose(fp);
 }
 
 /* Create Socket Utility Function */
