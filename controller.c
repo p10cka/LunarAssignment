@@ -233,22 +233,25 @@ void getData(int fd, struct addrinfo *address)
     msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0); /* Don't need the senders address */
     incoming[msgsize] = '\0';
 
-    char *state = strtok(incoming, ":"); //split into key:value pair
-    char *landerStates[2];
+    char *landerCondition = strtok(incoming, ":"); //split into key:value pair
+    char *landerConditions[7];
 
-    while (state != NULL)
+    while (landerCondition != NULL)
     {
-        landerStates[i++] = state;
-        state = strtok(NULL, ":");
+        landerConditions[i++] = landerCondition;
+        landerCondition = strtok(NULL, ":");
     }
+
+    //Semaphore wait
     rc = sem_wait(&sem);
     assert(rc == 0);
 
-    char *xposition1 = strtok(landerStates[2], "y");
-    xposition = atoi(xposition1);
+    //Critical Section
+    char *x1 = strtok(landerConditions[2], "y");
+    xposition = strtof(x1, NULL);
 
-   // char *data-x1 = strtok(landerStates[3], "...");
-   // data-x = strtof(altitude1, NULL);
+  //  char *altitude1 = strtok(landerConditions[3], "contact");
+  //  altitude = strtof(altitude1, NULL);
 
     //Semaphore Post
     rc = sem_post(&sem);
