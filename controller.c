@@ -248,7 +248,7 @@ void getData(int fd, struct addrinfo *address)
     char *points1 = strtok(terrainConditions[2], "data-x");
     points = atoi(points1);
 
-    char *dataX1 = strtok(landerConditions[3], "data-y");
+    char *dataX1 = strtok(terrainConditions[3], "data-y");
     dataX = atoi(dataX1);
     //Semaphore Post
     rc = sem_post(&sem);
