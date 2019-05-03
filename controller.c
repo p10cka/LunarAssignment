@@ -50,8 +50,7 @@ int main(int argc, const char *argv)
     pthread_t dashboardCommunicationThread;
     pthread_t userInputThread;
     pthread_t serverCommunicationHandlerThread;
-    //pthread_t dataLogThread;
-    fp = fopen("DataLog.txt", "w");
+    pthread_t dataLogThread;
     int dc, ui, sc, dl, rc;
 
     //Dashboard Communication Thread
@@ -67,8 +66,8 @@ int main(int argc, const char *argv)
     assert(sc == 0);
 
     //Data Log Thread
-    //dl = pthread_create(&dataLogThread, NULL, dataLog, NULL);
-    //assert(dl == 0);
+    dl = pthread_create(&dataLogThread, NULL, dataLog, NULL);
+    assert(dl == 0);
 
     rc = sem_init(&sem, 0, 1);
     assert(rc == 0);
@@ -207,6 +206,7 @@ void serverCommunication(int fd, struct addrinfo *address)
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 }
 
+
 /* Sends and Receives Messages to the Client */
 void logData(int fd, struct addrinfo *address)
 {
@@ -214,10 +214,7 @@ void logData(int fd, struct addrinfo *address)
     size_t msgsize;
     int i = 0;
     int rc;
-    //struct sockaddr clientaddr;
-    //socklen_t addrlen = sizeof(clientaddr);
 
-    //Critical Section
     strcpy(outgoing, "terrain:?");
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 
@@ -286,20 +283,32 @@ void clientMessage(int fd, struct addrinfo *address)
     assert(rc == 0);
 }
 
-/* Logs User Data to a Text File */
-void dataLog(int fd)
-{
+/*
     int rc;
     rc = sem_wait(&sem);
     assert(rc == 0);
+    rc = sem_post(&sem);
+    assert(rc == 0);
+*/
+
+
+/* Logs User Data to a Text File */
+void dataLog(int fd)
+{
+    //open the file
+    fp = fopen("DataLog.txt", "w");
+
+    while (!escPressed) {
+        while (1) {    
     fprintf(fp, "-------------\n");
     fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n\n", fuel);
     fprintf(fp, "Data-Points: %i\n", points);
     fprintf(fp, "-------------\n");
-    rc = sem_post(&sem);
-    assert(rc == 0);
+        sleep(1);
+        }
+    }
 
     if (escPressed)
     {
