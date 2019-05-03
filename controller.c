@@ -293,7 +293,7 @@ void *dataLog(void *arg)
     //open the file
     fp = fopen("Log.txt", "w");
 
-   while (1) {
+   while (!escPressed) {
     fprintf(fp, "--@@-----@@------\n");
     //fprintf(fp, "Key Pressed: %i\n", fd);
     //fprintf(fp, "Lander Altitude: %.2f\n", altitude);
