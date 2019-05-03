@@ -322,7 +322,7 @@ void getState(int fd, struct addrinfo *address)
     char *xPosition1 = strtok(stateConditions[2], "y");
     xPosition = strtof(xPosition1, NULL);
 
-    char *yPosition1 = strtok(stateConditions[2], "O");
+    char *yPosition1 = strtok(stateConditions[3], "O");
     yPosition = strtof(yPosition1, NULL);
 
     //Semaphore Post
