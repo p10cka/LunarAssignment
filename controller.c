@@ -291,7 +291,7 @@ void clientMessage(int fd, struct addrinfo *address)
 void *dataLog(void *arg)
 {
     //open the file
-    fp = fopen("Log.txt", "w");
+    fp = fopen("LanderLog.txt", "w");
 
    while (!escPressed) {
     fprintf(fp, "----------------------------------------------\n");
