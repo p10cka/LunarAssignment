@@ -293,8 +293,7 @@ void *dataLog(void *arg)
     //open the file
     fp = fopen("DataLog.txt", "w");
 
-    while (!escPressed) {
-        while (1) {    
+   while (!escPressed) {
     fprintf(fp, "--@@-----@@------\n");
     //fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
@@ -303,12 +302,8 @@ void *dataLog(void *arg)
     fprintf(fp, "---@@@@-----\n");
         sleep(1);
         }
-    }
-
-    if (escPressed)
-    {
+       
         fclose(fp);
-    }
 }
 
 /* Create Socket Utility Function */
