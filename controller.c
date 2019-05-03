@@ -55,7 +55,8 @@ float altitude;
 int points;
 int dataX;
 int dataY;
-int xPosition;
+float xPosition;
+float yPosition;
 int mainEngine = 0;
 float rcsRoll = 0;
 
@@ -319,7 +320,10 @@ void getState(int fd, struct addrinfo *address)
 
     //Critical Section
     char *xPosition1 = strtok(stateConditions[2], "y");
-    xPosition = atoi(xPosition1);
+    xPosition = strtof(xPosition1, NULL);
+
+    char *yPosition1 = strtok(stateConditions[2], "O");
+    yPosition = strtof(yPosition1, NULL);
 
     //Semaphore Post
     rc = sem_post(&sem);
@@ -380,6 +384,8 @@ void dataLog(void)
     fprintf(fp, "Data-Points: %i\n", points);
     fprintf(fp, "X Ground Coordinates: %i\n", dataX);
     fprintf(fp, "Y Ground Coordinates: %i\n", dataY);
+    fprintf(fp, "X Position: %.2f\n", xPosition);
+    fprintf(fp, "Y Position: %.2f\n", yPosition);
 
     //Semaphore Post
     rc = sem_post(&sem);
