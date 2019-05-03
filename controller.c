@@ -234,7 +234,7 @@ void getData(int fd, struct addrinfo *address)
     incoming[msgsize] = '\0';
 
     char *state = strtok(incoming, ":"); //split into key:value pair
-    char *landerStates[7];
+    char *landerStates[2];
 
     while (state != NULL)
     {
