@@ -24,7 +24,7 @@ void userControls(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
 void serverCommunication(int fd, struct addrinfo *address);
 void clientMessage(int fd, struct addrinfo *address);
-void dataLog(int fd);
+void *dataLog(int fd);
 int createSocket(void);
 int getAddress(const char *hostname, const char *service, struct addrinfo **address);
 void logData(int fd, struct addrinfo *address);
