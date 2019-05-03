@@ -20,14 +20,15 @@
 void *userInput(void *arg);
 void *dashboardCommunication(void *arg);
 void *serverCommunicationHandler(void *arg);
+void *dataLogHandler(void *arg);
 void userControls(int fd, struct addrinfo *address);
 void updateDashboard(int fd, struct addrinfo *address);
 void serverCommunication(int fd, struct addrinfo *address);
 void clientMessage(int fd, struct addrinfo *address);
-void *dataLog(void *arg);
+void dataLog(void);
 int createSocket(void);
 int getAddress(const char *hostname, const char *service, struct addrinfo **address);
-//void logData(int fd, struct addrinfo *address);
+void getData(int fd, struct addrinfo *address);
 
 /* Global Variables*/
 FILE *fp;
@@ -66,7 +67,7 @@ int main(int argc, const char *argv)
     assert(sc == 0);
 
     //Data Log Thread
-    dl = pthread_create(&dataLogThread, NULL, dataLog, NULL);
+    dl = pthread_create(&dataLogThread, NULL, dataLogHandler, NULL);
     assert(dl == 0);
 
     rc = sem_init(&sem, 0, 1);
@@ -108,8 +109,24 @@ void *serverCommunicationHandler(void *arg)
     while (1)
     {
         clientMessage(serverSocket, serverAddress);
-       // logData(serverSocket, serverAddress);
     }
+}
+
+void *dataLogHandler(void *arg)
+{
+    fp = fopen("LanderLog.txt", "w");
+    struct addrinfo *serverAddress;
+    getAddress(host, serverPort, &serverAddress);
+    int dataSocket = createSocket();
+
+    while(!escPressed) {
+    getData(dataSocket, serverAddress);
+    dataLog();
+    }
+    
+    fclose(fp);
+
+
 }
 
 /* User Controls to Control the Lander */
@@ -203,7 +220,7 @@ void serverCommunication(int fd, struct addrinfo *address)
 
 
 /* Sends and Receives Messages to the Client */
-/*void logData(int fd, struct addrinfo *address)
+void getData(int fd, struct addrinfo *address)
 {
     char incoming[buffsize], outgoing[buffsize];
     size_t msgsize;
@@ -213,7 +230,7 @@ void serverCommunication(int fd, struct addrinfo *address)
     strcpy(outgoing, "terrain:?");
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 
-    msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0); /* Don't need the senders address 
+    msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0); /* Don't need the senders address */
     incoming[msgsize] = '\0';
 
     char *terrain = strtok(incoming, ":"); //split into key:value pair
@@ -236,7 +253,7 @@ void serverCommunication(int fd, struct addrinfo *address)
     //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
-}*/
+}
 
 /* Sends and Receives Messages to the Client */
 void clientMessage(int fd, struct addrinfo *address)
@@ -278,18 +295,10 @@ void clientMessage(int fd, struct addrinfo *address)
     assert(rc == 0);
 }
 
-/*
-
-*/
-
 
 /* Logs User Data to a Text File */
-void *dataLog(void *arg)
+void dataLog(void)
 {
-    //open the file
-    fp = fopen("LanderLog.txt", "w");
-
-    while (!escPressed) {
     int rc;
     rc = sem_wait(&sem);
     assert(rc == 0);
@@ -298,13 +307,12 @@ void *dataLog(void *arg)
     //fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n", fuel);
-    //fprintf(fp, "Data-Points: %i\n", points);
+    fprintf(fp, "Data-Points: %i\n", points);
 
     rc = sem_post(&sem);
     assert(rc == 0);
-    sleep(1);
-    }   
-    fclose(fp);
+
+
 }
 
 /* Create Socket Utility Function */
