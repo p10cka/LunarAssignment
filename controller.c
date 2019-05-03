@@ -145,7 +145,6 @@ void userControls(int fd, struct addrinfo *address)
             {
                 mainEngine += 5;
                 serverCommunication(fd, address);
-                dataLog(input);
             }
             break;
 
@@ -154,7 +153,6 @@ void userControls(int fd, struct addrinfo *address)
             {
                 mainEngine -= 5;
                 serverCommunication(fd, address);
-                dataLog(input);
             }
             break;
 
@@ -163,7 +161,6 @@ void userControls(int fd, struct addrinfo *address)
             {
                 rcsRoll -= 0.1;
                 serverCommunication(fd, address);
-                dataLog(input);
             }
             break;
 
@@ -172,7 +169,6 @@ void userControls(int fd, struct addrinfo *address)
             {
                 rcsRoll += 0.1;
                 serverCommunication(fd, address);
-                dataLog(input);
             }
             break;
         default:
@@ -293,7 +289,7 @@ void clientMessage(int fd, struct addrinfo *address)
 
 
 /* Logs User Data to a Text File */
-void *dataLog(int fd)
+void *dataLog(void *arg)
 {
     //open the file
     fp = fopen("DataLog.txt", "w");
@@ -301,7 +297,7 @@ void *dataLog(int fd)
     while (!escPressed) {
         while (1) {    
     fprintf(fp, "--@@-----@@------\n");
-    fprintf(fp, "Key Pressed: %i\n", fd);
+    //fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n\n", fuel);
     fprintf(fp, "Data-Points: %i\n", points);
