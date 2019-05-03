@@ -305,7 +305,7 @@ void getState(int fd, struct addrinfo *address)
     incoming[msgsize] = '\0';
 
     char *state = strtok(incoming, ":"); //split into key:value pair
-    char *stateConditions[7];
+    char *stateConditions[15];
 
     while (state != NULL)
     {
