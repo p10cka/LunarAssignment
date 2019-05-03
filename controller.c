@@ -293,7 +293,7 @@ void clientMessage(int fd, struct addrinfo *address)
 
 
 /* Logs User Data to a Text File */
-void dataLog(int fd)
+void *dataLog(int fd)
 {
     //open the file
     fp = fopen("DataLog.txt", "w");
