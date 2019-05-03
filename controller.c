@@ -180,7 +180,6 @@ void userControls(int fd, struct addrinfo *address)
         refresh();
     }
     escPressed = true;
-    dataLog(input);
     endwin();
     exit(1);
 }
