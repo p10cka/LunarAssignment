@@ -333,12 +333,12 @@ void getState(int fd, struct addrinfo *address)
     orientation = atoi(orientation1);
 
     char *hVelocity1 = strtok(stateConditions[5], "y'");
-    hVeloctiy = strtof(hVelocity1, NULL);
+    hVelocity = strtof(hVelocity1, NULL);
 
     char *vVelocity1 = strtok(stateConditions[6], "O'");
-    vVelocity = strtof(vVelocity1);
+    vVelocity = strtof(vVelocity1, NULL);
 
-    char *rotiationRate1 = strtok(stateConditions[7], "");
+    char *rotationRate1 = strtok(stateConditions[7], "");
     rotationRate = strtof(rotationRate1, NULL);
 
     //Semaphore Post
