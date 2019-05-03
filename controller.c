@@ -41,7 +41,7 @@ bool escPressed = false;
 const size_t buffsize = 4096;
 float fuel;
 float altitude;
-int xposition;
+int points;
 int mainEngine = 0;
 float rcsRoll = 0;
 
@@ -227,31 +227,28 @@ void getData(int fd, struct addrinfo *address)
     int i = 0;
     int rc;
 
-    strcpy(outgoing, "state:?");
+    strcpy(outgoing, "terrain:?");
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 
     msgsize = recvfrom(fd, incoming, buffsize, 0, NULL, 0); /* Don't need the senders address */
     incoming[msgsize] = '\0';
 
-    char *landerCondition = strtok(incoming, ":"); //split into key:value pair
-    char *landerConditions[7];
+    char *terrain = strtok(incoming, ":"); //split into key:value pair
+    char *terrainConditions[4];
 
-    while (landerCondition != NULL)
+    while (terrain != NULL)
     {
-        landerConditions[i++] = landerCondition;
-        landerCondition = strtok(NULL, ":");
+        terrainConditions[i++] = terrain;
+        terrain = strtok(NULL, ":");
     }
-
-    //Semaphore wait
     rc = sem_wait(&sem);
     assert(rc == 0);
 
-    //Critical Section
-    char *x1 = strtok(landerConditions[2], "y");
-    xposition = strtof(x1, NULL);
+    char *points1 = strtok(terrainConditions[2], "data-x");
+    points = atoi(points1);
 
-  //  char *altitude1 = strtok(landerConditions[3], "contact");
-  //  altitude = strtof(altitude1, NULL);
+    //char *data-x1 = strtok(landerConditions[3], ",");
+    //data-x = strtof(altitude1, NULL);
 
     //Semaphore Post
     rc = sem_post(&sem);
@@ -309,7 +306,7 @@ void dataLog(void)
     //fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n", fuel);
-    fprintf(fp, "X Position: %i\n", xposition);
+    fprintf(fp, "Data-Points: %i\n", points);
 
     rc = sem_post(&sem);
     assert(rc == 0);
