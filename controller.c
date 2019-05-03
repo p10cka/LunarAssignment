@@ -57,6 +57,10 @@ int dataX;
 int dataY;
 float xPosition;
 float yPosition;
+int orientation;
+float hVelocity;
+float vVelocity;
+float rotationRate;
 int mainEngine = 0;
 float rcsRoll = 0;
 
@@ -325,6 +329,18 @@ void getState(int fd, struct addrinfo *address)
     char *yPosition1 = strtok(stateConditions[3], "O");
     yPosition = strtof(yPosition1, NULL);
 
+    char *orientation1 = strtok(stateConditions[4], "x'");//
+    orientation = atoi(orientation1);
+
+    char *hVelocity1 = strtok(stateConditions[5], "y'");
+    hVeloctiy = strtof(hVelocity1, NULL);
+
+    char *vVelocity1 = strtok(stateConditions[6], "O'");
+    vVelocity = strtof(vVelocity1);
+
+    char *rotiationRate1 = strtok(stateConditions[7], "");
+    rotationRate = strtof(rotationRate1, NULL);
+
     //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
@@ -386,6 +402,11 @@ void dataLog(void)
     fprintf(fp, "Y Ground Coordinates: %i\n", dataY);
     fprintf(fp, "X Position: %.2f\n", xPosition);
     fprintf(fp, "Y Position: %.2f\n", yPosition);
+
+    fprintf(fp, "Orientation %i\n", orientation);
+    fprintf(fp, "Horizontal Velocity: %.2f\n", hVelocity);
+    fprintf(fp, "Vertical Velocity: %.2f\n", vVelocity);
+    fprintf(fp, "Rotation Rate: %.2f\n", rotationRate);
 
     //Semaphore Post
     rc = sem_post(&sem);
