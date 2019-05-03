@@ -181,7 +181,7 @@ void userControls(int fd, struct addrinfo *address)
     }
     escPressed = true;
     endwin();
-    exit(1);
+    exit(0);
 }
 
 /* Updates the Lander Dashboard */
@@ -294,13 +294,12 @@ void *dataLog(void *arg)
     fp = fopen("Log.txt", "w");
 
    while (!escPressed) {
-    fprintf(fp, "--@@-----@@------\n");
+    fprintf(fp, "----------------------------------------------\n");
     //fprintf(fp, "Key Pressed: %i\n", fd);
-    //fprintf(fp, "Lander Altitude: %.2f\n", altitude);
-    //fprintf(fp, "Lander Fuel: %.2f\n\n", fuel);
+    fprintf(fp, "Lander Altitude: %.2f\n", altitude);
+    fprintf(fp, "Lander Fuel: %.2f\n", fuel);
     //fprintf(fp, "Data-Points: %i\n", points);
-    fprintf(fp, "---@@@@-----\n");
-    //sleep(1);
+    sleep(1);
     }   
     fclose(fp);
 }
