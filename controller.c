@@ -95,7 +95,7 @@ void *dashboardCommunication(void *arg)
     while (1)
     {
         updateDashboard(dashboardSocket, dashboardAddress);
-        sleep(0.1); //quick hack for now
+        sleep(0.5); //quick hack for now
     }
 }
 
