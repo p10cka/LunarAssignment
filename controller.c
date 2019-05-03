@@ -26,7 +26,7 @@ void serverCommunication(int fd, struct addrinfo *address);
 void clientMessage(int fd, struct addrinfo *address);
 void dataLog(int fd);
 int createSocket(void);
-int getaddr(const char *hostname, const char *service, struct addrinfo **address);
+int getAddress(const char *hostname, const char *service, struct addrinfo **address);
 void logData(int fd, struct addrinfo *address);
 
 /* Global Variables*/
@@ -81,7 +81,7 @@ void *userInput(void *arg)
 {
     struct addrinfo *address;
     int fd;
-    getaddr(host, serverPort, &address);
+    getAddress(host, serverPort, &address);
     fd = createSocket();
     userControls(fd, address);
     exit(0);
@@ -91,7 +91,7 @@ void *userInput(void *arg)
 void *dashboardCommunication(void *arg)
 {
     struct addrinfo *dashboardAddress;
-    getaddr(host, dashboardPort, &dashboardAddress);
+    getAddress(host, dashboardPort, &dashboardAddress);
     int dashboardSocket = createSocket();
     while (1)
     {
@@ -104,7 +104,7 @@ void *dashboardCommunication(void *arg)
 void *serverCommunicationHandler(void *arg)
 {
     struct addrinfo *serverAddress;
-    getaddr(host, serverPort, &serverAddress);
+    getAddress(host, serverPort, &serverAddress);
     int serverSocket = createSocket();
     while (1)
     {
@@ -193,35 +193,18 @@ void userControls(int fd, struct addrinfo *address)
 /* Updates the Lander Dashboard */
 void updateDashboard(int fd, struct addrinfo *address)
 {
-    int rc;
     char outgoing[buffsize];
-
-    rc = sem_wait(&sem);
-    assert(rc == 0);
-
-    //Crititcal Section
     snprintf(outgoing, sizeof(outgoing), "fuel: %.2f \naltitude: %.2f", fuel, altitude);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
-
-    rc = sem_post(&sem);
-    assert(rc == 0);
 }
 
 /* Sends Commands to the Lander Server */
 void serverCommunication(int fd, struct addrinfo *address)
 {
-    int rc;
     char outgoing[buffsize];
-
-    rc = sem_wait(&sem);
-    assert(rc == 0);
-
     //Critical Section
     snprintf(outgoing, sizeof(outgoing), "command:!\nmain-engine: %i\nrcs-roll: %f", mainEngine, rcsRoll);
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
-
-    rc = sem_post(&sem);
-    assert(rc == 0);
 }
 
 /* Sends and Receives Messages to the Client */
@@ -233,9 +216,6 @@ void logData(int fd, struct addrinfo *address)
     int rc;
     //struct sockaddr clientaddr;
     //socklen_t addrlen = sizeof(clientaddr);
-
-    rc = sem_wait(&sem);
-    assert(rc == 0);
 
     //Critical Section
     strcpy(outgoing, "terrain:?");
@@ -252,6 +232,8 @@ void logData(int fd, struct addrinfo *address)
         terrainConditions[i++] = terrain;
         terrain = strtok(NULL, ":");
     }
+    rc = sem_wait(&sem);
+    assert(rc == 0);
 
     char *points1 = strtok(terrainConditions[2], "data-x");
     points = atoi(points1);
@@ -273,11 +255,6 @@ void clientMessage(int fd, struct addrinfo *address)
     int rc;
     //struct sockaddr clientaddr;
     //socklen_t addrlen = sizeof(clientaddr);
-
-    rc = sem_wait(&sem);
-    assert(rc == 0);
-
-    //Critical Section
     strcpy(outgoing, "condition:?");
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 
@@ -292,7 +269,12 @@ void clientMessage(int fd, struct addrinfo *address)
         landerConditions[i++] = landerCondition;
         landerCondition = strtok(NULL, ":");
     }
+    
+    //Semaphore wait
+    rc = sem_wait(&sem);
+    assert(rc == 0);
 
+    //Critical Section
     char *fuel1 = strtok(landerConditions[2], "%");
     fuel = strtof(fuel1, NULL);
 
@@ -316,14 +298,13 @@ void dataLog(int fd)
     fprintf(fp, "Lander Fuel: %.2f\n\n", fuel);
     fprintf(fp, "Data-Points: %i\n", points);
     fprintf(fp, "-------------\n");
+    rc = sem_post(&sem);
+    assert(rc == 0);
 
     if (escPressed)
     {
         fclose(fp);
     }
-
-    rc = sem_post(&sem);
-    assert(rc == 0);
 }
 
 /* Create Socket Utility Function */
@@ -341,7 +322,7 @@ int createSocket(void)
 }
 
 /* Get Address Utility Function */
-int getaddr(const char *hostname, const char *service, struct addrinfo **address)
+int getAddress(const char *hostname, const char *service, struct addrinfo **address)
 {
     struct addrinfo hints = {
         .ai_family = AF_INET,
