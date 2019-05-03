@@ -95,7 +95,7 @@ void *dashboardCommunication(void *arg)
     while (1)
     {
         updateDashboard(dashboardSocket, dashboardAddress);
-        sleep(1); //quick hack for now
+        sleep(0.1); //quick hack for now
     }
 }
 
@@ -279,11 +279,7 @@ void clientMessage(int fd, struct addrinfo *address)
 }
 
 /*
-    int rc;
-    rc = sem_wait(&sem);
-    assert(rc == 0);
-    rc = sem_post(&sem);
-    assert(rc == 0);
+
 */
 
 
@@ -293,12 +289,19 @@ void *dataLog(void *arg)
     //open the file
     fp = fopen("LanderLog.txt", "w");
 
-   while (!escPressed) {
+    while (!escPressed) {
+    int rc;
+    rc = sem_wait(&sem);
+    assert(rc == 0);
+
     fprintf(fp, "----------------------------------------------\n");
     //fprintf(fp, "Key Pressed: %i\n", fd);
     fprintf(fp, "Lander Altitude: %.2f\n", altitude);
     fprintf(fp, "Lander Fuel: %.2f\n", fuel);
     //fprintf(fp, "Data-Points: %i\n", points);
+
+    rc = sem_post(&sem);
+    assert(rc == 0);
     sleep(1);
     }   
     fclose(fp);
