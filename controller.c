@@ -43,6 +43,7 @@ float fuel;
 float altitude;
 int points;
 int dataX;
+int dataY;
 int mainEngine = 0;
 float rcsRoll = 0;
 
@@ -250,6 +251,9 @@ void getData(int fd, struct addrinfo *address)
 
     char *dataX1 = strtok(terrainConditions[3], "data-y");
     dataX = atoi(dataX1);
+
+    char *dataY1 = strtok(terrainConditions[4], "...");
+    dataY = atoi(dataY1);
     //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
@@ -308,6 +312,7 @@ void dataLog(void)
     fprintf(fp, "Lander Fuel: %.2f\n", fuel);
     fprintf(fp, "Data-Points: %i\n", points);
     fprintf(fp, "Data-X: %i\n", dataX);
+    fprintf(fp, "Data-Y: %i\n", dataY);
 
 
     rc = sem_post(&sem);
