@@ -405,14 +405,14 @@ void dataLog(void)
     fprintf(fp, "Orientation: %i\n", orientation);
     fprintf(fp, "Horizontal Velocity: %.2f\n", hVelocity);
     fprintf(fp, "Vertical Velocity: %.2f\n", vVelocity);
-    //fprintf(fp, "Rotation Rate: %.2f\n", rotationRate);
+    fprintf(fp, "Rotation Rate: %.2f\n", rotationRate);
 
     //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
 }
 
-/* Create Socket Utility Function 
+/* Create Socket Utility Function .
     Creates a socket or returns an error if unsuccessful. */
 int createSocket(void)
 {
