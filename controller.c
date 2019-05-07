@@ -402,11 +402,10 @@ void dataLog(void)
     fprintf(fp, "Y Ground Coordinates: %i\n", dataY);
     fprintf(fp, "X Position: %.2f\n", xPosition);
     fprintf(fp, "Y Position: %.2f\n", yPosition);
-
-    fprintf(fp, "Orientation %i\n", orientation);
+    fprintf(fp, "Orientation: %i\n", orientation);
     fprintf(fp, "Horizontal Velocity: %.2f\n", hVelocity);
     fprintf(fp, "Vertical Velocity: %.2f\n", vVelocity);
-    fprintf(fp, "Rotation Rate: %.2f\n", rotationRate);
+    //fprintf(fp, "Rotation Rate: %.2f\n", rotationRate);
 
     //Semaphore Post
     rc = sem_post(&sem);
