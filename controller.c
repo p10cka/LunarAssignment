@@ -60,7 +60,6 @@ float yPosition;
 int orientation;
 float hVelocity;
 float vVelocity;
-float rotationRate;
 int mainEngine = 0;
 float rcsRoll = 0;
 
@@ -105,6 +104,7 @@ void *userInput(void *arg)
     getAddress(host, serverPort, &address);
     int userSocket = createSocket();
 
+    //Call the userControls method with the user socket and address
     userControls(userSocket, address);
     exit(0);
 }
@@ -116,10 +116,11 @@ void *dashboardCommunication(void *arg)
     getAddress(host, dashboardPort, &dashboardAddress);
     int dashboardSocket = createSocket();
     
-    //Update the dashboard every 1 second
+    //Continuously update the dashboard
     while (1)
     {
         updateDashboard(dashboardSocket, dashboardAddress);
+        //sleep for 1 second
         sleep(1);
     }
 }
@@ -262,6 +263,7 @@ void getTerrain(int fd, struct addrinfo *address)
     int i = 0;
     int rc;
 
+    //Requests terrain data
     strcpy(outgoing, "terrain:?");
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 
@@ -271,6 +273,7 @@ void getTerrain(int fd, struct addrinfo *address)
     char *terrain = strtok(incoming, ":"); //split into key:value pair
     char *terrainConditions[4];
 
+    //While there is terrain values, insert into the terrain conditions array
     while (terrain != NULL)
     {
         terrainConditions[i++] = terrain;
@@ -303,6 +306,7 @@ void getState(int fd, struct addrinfo *address)
     int i = 0;
     int rc;
 
+    //Sends the state:? message to get the lander state
     strcpy(outgoing, "state:?");
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 
@@ -323,6 +327,7 @@ void getState(int fd, struct addrinfo *address)
     assert(rc == 0);
 
     //Critical Section
+    //Get the state values from the array
     char *xPosition1 = strtok(stateConditions[2], "y");
     xPosition = strtof(xPosition1, NULL);
 
@@ -338,9 +343,6 @@ void getState(int fd, struct addrinfo *address)
     char *vVelocity1 = strtok(stateConditions[6], "O'");
     vVelocity = strtof(vVelocity1, NULL);
 
-    char *rotationRate1 = strtok(stateConditions[7], "");
-    rotationRate = strtof(rotationRate1, NULL);
-
     //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
@@ -355,6 +357,7 @@ void getCondition(int fd, struct addrinfo *address)
     int rc;
     //struct sockaddr clientaddr;
     //socklen_t addrlen = sizeof(clientaddr);
+    //Sends condition:? to the lander to get the lander condition
     strcpy(outgoing, "condition:?");
     sendto(fd, outgoing, strlen(outgoing), 0, address->ai_addr, address->ai_addrlen);
 
@@ -364,6 +367,7 @@ void getCondition(int fd, struct addrinfo *address)
     char *landerCondition = strtok(incoming, ":"); //split into key:value pair
     char *landerConditions[4];
 
+    //While there is lander conditions
     while (landerCondition != NULL)
     {
         landerConditions[i++] = landerCondition;
@@ -380,7 +384,7 @@ void getCondition(int fd, struct addrinfo *address)
 
     char *altitude1 = strtok(landerConditions[3], "contact");
     altitude = strtof(altitude1, NULL);
-
+    
     //Semaphore Post
     rc = sem_post(&sem);
     assert(rc == 0);
@@ -405,7 +409,6 @@ void dataLog(void)
     fprintf(fp, "Orientation: %i\n", orientation);
     fprintf(fp, "Horizontal Velocity: %.2f\n", hVelocity);
     fprintf(fp, "Vertical Velocity: %.2f\n", vVelocity);
-    fprintf(fp, "Rotation Rate: %.2f\n", rotationRate);
 
     //Semaphore Post
     rc = sem_post(&sem);
@@ -418,6 +421,7 @@ int createSocket(void)
 {
     int sock;
     sock = socket(AF_INET, SOCK_DGRAM, 0);
+    //If the socket is unsuccessful, display an error
     if (sock == -1)
     {
         fprintf(stderr, "error making socket: %s\n", strerror(errno));
@@ -435,6 +439,7 @@ int getAddress(const char *hostname, const char *service, struct addrinfo **addr
         .ai_family = AF_INET,
         .ai_socktype = SOCK_DGRAM};
 
+    //gets address info for the specified hostname
     int err = getaddrinfo(hostname, service, &hints, address);
 
     if (err)
