@@ -44,8 +44,7 @@ int getAddress(const char *hostname, const char *service, struct addrinfo **addr
 /* Global Variables*/
 FILE *fp;
 static sem_t sem;
-char *host = "192.168.56.1";
-//char *host = "127.0.1.1";
+char *host = "127.0.1.1";
 char *dashboardPort = "65250";
 char *serverPort = "65200";
 bool escPressed = false;
